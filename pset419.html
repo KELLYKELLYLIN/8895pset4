@@ -1,0 +1,5223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Future Waves · 卡牌任务版 + 全流程 Demo + 换装舞台</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at 0 0, #54c5ff 0%, transparent 50%),
+                  radial-gradient(circle at 100% 0, #6f7dff 0%, transparent 45%),
+                  radial-gradient(circle at 0 100%, #f88cf5 0%, transparent 45%),
+                  #1f2937;
+      color: #111827;
+    }
+    button { font-family: inherit; cursor: pointer; border: none; }
+
+    .app-root {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem 0.75rem;
+    }
+
+    .btn-main {
+      padding: 0.5rem 1.4rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      background: linear-gradient(135deg,#ffd84d,#ff6bb5);
+      color: #311b92;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.28);
+      letter-spacing: 0.04em;
+    }
+    .btn-main:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .btn-small {
+      padding:0.3rem 0.8rem;
+      border-radius:999px;
+      font-size:0.78rem;
+      font-weight:600;
+      background:#111827;
+      color:#f9fafb;
+    }
+    .btn-small.secondary {
+      background:#e5e7eb;
+      color:#111827;
+    }
+    .btn-chip {
+      border-radius:999px;
+      padding:0.25rem 0.7rem;
+      font-size:0.78rem;
+      background:#fee2f3;
+      color:#9d174d;
+      border:1px solid #f9a8d4;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:0.2rem;
+    }
+
+    #screen-start {
+      text-align: center;
+      color: #fff;
+      max-width: 540px;
+    }
+    .logo-pill {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: 0.2rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.35);
+      border: 1px solid rgba(255,255,255,0.7);
+      font-size: 0.8rem;
+      margin-bottom: 0.6rem;
+      gap: 0.25rem;
+    }
+    .logo-pill-dot {
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: #ffcd3c;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.6);
+    }
+    .start-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      text-shadow: 0 3px 8px rgba(0,0,0,0.45);
+      margin-bottom: 0.4rem;
+    }
+    .start-sub {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+
+    #screen-game { display:none; width:100%; max-width:1100px; }
+
+    .top-bar {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom: 0.6rem;
+      color:#fff;
+    }
+    .top-title {
+      display:flex;
+      align-items:center;
+      gap:0.4rem;
+    }
+    .top-tag {
+      padding:0.15rem 0.6rem;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.8);
+      font-size:0.7rem;
+      background:rgba(15,23,42,0.35);
+    }
+    .top-res {
+      display:flex;
+      gap:0.35rem;
+      font-size:0.78rem;
+    }
+    .res-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:0.2rem;
+      padding:0.15rem 0.5rem;
+      border-radius:999px;
+      background:rgba(15,23,42,0.4);
+      border:1px solid rgba(255,255,255,0.7);
+    }
+    .res-dot {
+      width:12px; height:12px;
+      border-radius:50%;
+      background:#ff6b6b;
+    }
+    .res-dot.green { background:#4ade80; }
+    .res-dot.pink { background:#f973c9; }
+
+    .hint-bar {
+      margin: 0.1rem 0 0.7rem;
+      padding: 0.35rem 0.7rem;
+      border-radius: 0.9rem;
+      background: rgba(255,255,255,0.9);
+      font-size: 0.8rem;
+      color: #4b5563;
+      box-shadow: 0 6px 16px rgba(15,23,42,0.26);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:0.5rem;
+    }
+    .hint-step {
+      font-size:0.78rem;
+      color:#9f1239;
+      font-weight:700;
+    }
+
+    .card-row {
+      display:flex;
+      gap:0.5rem;
+      justify-content:space-between;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .task-card {
+      flex:1;
+      min-width:140px;
+      max-width:180px;
+      height:260px;
+      border-radius: 1.3rem;
+      background: linear-gradient(135deg,#ffe57f,#ff6fb7);
+      position:relative;
+      box-shadow: 0 16px 38px rgba(15,23,42,0.5);
+      overflow:hidden;
+      cursor:pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.15s;
+    }
+    .task-card[data-locked="true"]{
+      filter: grayscale(0.5) brightness(0.8);
+      cursor: not-allowed;
+      box-shadow: 0 8px 18px rgba(15,23,42,0.4);
+    }
+    .task-card:hover:not([data-locked="true"]) {
+      transform: translateY(-6px);
+      box-shadow: 0 22px 46px rgba(15,23,42,0.75);
+    }
+    .task-lv {
+      position:absolute;
+      top:6px; left:6px;
+      padding:0.16rem 0.5rem;
+      border-radius:999px;
+      background:#111827;
+      color:#fffbeb;
+      font-size:0.7rem;
+      font-weight:700;
+    }
+    .task-index {
+      position:absolute;
+      top:6px; right:6px;
+      width:22px; height:22px;
+      border-radius:999px;
+      background:#ffffff;
+      color:#111827;
+      font-size:0.75rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 2px rgba(0,0,0,0.25);
+      font-weight:700;
+    }
+.task-illust {
+  position:absolute;
+  inset:40px 8px 72px 8px;
+  border-radius:1rem;
+  background: linear-gradient(135deg, #667eea, #764ba2); /* 添加默认紫色渐变 */
+  overflow:hidden;
+  transition: all 0.3s ease;
+}
+
+/* 卡牌1：职业登场 - 暖色调渐变 + 小人剪影 */
+.task-card[data-id="1"] .task-illust {
+  background: radial-gradient(circle at 30% 30%, #ffb347, #ff8c42) !important;
+  position: relative;
+}
+.task-card[data-id="1"] .task-illust::after {
+  content: "👤";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  opacity: 0.3;
+  filter: drop-shadow(0 0 5px rgba(255,255,255,0.5));
+}
+
+/* 卡牌2：抽取Waves - 科技蓝渐变 + 波浪线 */
+.task-card[data-id="2"] .task-illust {
+  background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+  position: relative;
+}
+.task-card[data-id="2"] .task-illust::after {
+  content: "🌊🌊🌊";
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 2rem;
+  opacity: 0.3;
+  transform: rotate(-5deg);
+  letter-spacing: 5px;
+}
+
+/* 卡牌3：战队 & 换装 - 紫色渐变 + 星星 */
+.task-card[data-id="3"] .task-illust {
+  background: linear-gradient(135deg, #a18cd1, #fbc2eb) !important;
+  position: relative;
+}
+.task-card[data-id="3"] .task-illust::after {
+  content: "✨✨✨";
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  font-size: 1.5rem;
+  opacity: 0.4;
+  transform: rotate(15deg);
+}
+
+/* 卡牌4：三层脑暴 + 换装 - 绿色渐变 + 齿轮 */
+.task-card[data-id="4"] .task-illust {
+  background: linear-gradient(135deg, #84fab0, #8fd3f4) !important;
+  position: relative;
+}
+.task-card[data-id="4"] .task-illust::after {
+  content: "⚙️🔧🛠️";
+  position: absolute;
+  bottom: 10px;
+  right: 5px;
+  font-size: 2rem;
+  opacity: 0.3;
+  transform: rotate(10deg);
+}
+
+/* 卡牌5：生成报告 - 金色渐变 + 奖杯/报告 */
+.task-card[data-id="5"] .task-illust {
+  background: linear-gradient(135deg, #f6d365, #fda085) !important;
+  position: relative;
+}
+.task-card[data-id="5"] .task-illust::after {
+  content: "📄🏆";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  opacity: 0.3;
+  white-space: nowrap;
+}
+
+/* 锁住的卡牌 - 降低透明度，但保留图案 */
+.task-card[data-locked="true"] .task-illust {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+/* 已完成卡牌 - 添加完成标记 */
+.task-card[data-done="true"] .task-illust::before {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  background: #22c55e;
+  border-radius: 50%;
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* 悬停效果 */
+.task-card:hover .task-illust {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+    .task-label {
+      position:absolute;
+      bottom:8px; left:8px; right:8px;
+      height:56px;
+      border-radius: 0.9rem;
+      background: rgba(255,255,255,0.96);
+      padding: 0.25rem 0.45rem;
+      font-size: 0.78rem;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:0.08rem;
+      color:#111827;
+    }
+    .task-name {
+      font-weight:800;
+      font-size:0.82rem;
+    }
+    .task-desc {
+      font-size:0.73rem;
+      color:#6b7280;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .task-status {
+      position:absolute;
+      top: 38px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.12rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.95);
+      color:#ecfdf5;
+      font-size:0.7rem;
+      font-weight:700;
+      box-shadow:0 8px 18px rgba(22,163,74,0.7);
+      display:none;
+    }
+    .task-card[data-done="true"] .task-status {
+      display:inline-flex;
+    }
+
+    .progress-dots {
+      display:flex;
+      justify-content:center;
+      gap:0.3rem;
+      margin-top:0.5rem;
+    }
+    .dot {
+      width:9px; height:9px;
+      border-radius:50%;
+      border:2px solid rgba(15,23,42,0.3);
+      background:rgba(255,255,255,0.8);
+    }
+    .dot.active {
+      background:#22c55e;
+      border-color:#15803d;
+    }
+
+    .bottom-menu {
+      display:flex;
+      justify-content:center;
+      gap:0.6rem;
+      margin-top:0.7rem;
+    }
+    .menu-btn {
+      min-width:86px;
+      padding:0.25rem 0.5rem;
+      border-radius:999px;
+      background:rgba(15,23,42,0.35);
+      color:#e5e7eb;
+      font-size:0.75rem;
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:0.2rem;
+      box-shadow:0 6px 14px rgba(15,23,42,0.7);
+    }
+    .menu-dot {
+      width:8px; height:8px;
+      border-radius:50%;
+      background:#facc15;
+    }
+
+    .modal-backdrop {
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:40;
+    }
+    .modal {
+      width:96%;
+      max-width:1200px;
+      max-height:90vh;
+      border-radius:1.2rem;
+      background:#f9fafb;
+      box-shadow:0 24px 60px rgba(0,0,0,0.6);
+      padding:0.8rem 0.9rem 0.8rem;
+      display:flex;
+      flex-direction:column;
+    }
+    .modal-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:0.45rem;
+    }
+    .modal-title {
+      font-size:0.95rem;
+      font-weight:800;
+    }
+    .modal-tag {
+      padding:0.12rem 0.5rem;
+      border-radius:999px;
+      background:#e0e7ff;
+      color:#4338ca;
+      font-size:0.7rem;
+    }
+    .modal-body {
+      font-size:0.8rem;
+      color:#4b5563;
+      line-height:1.6;
+      overflow:auto;
+      padding:0.4rem 0.1rem 0.2rem;
+    }
+    .modal-footer {
+      margin-top:0.5rem;
+      display:flex;
+      justify-content:flex-end;
+      gap:0.4rem;
+    }
+
+    .fade-in {
+      animation: fadeInUp 0.3s ease both;
+    }
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(12px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+
+    /* ===== Step1 角色画布 ===== */
+    .char-select-layout {
+      display:flex;
+      flex-direction:column;
+      gap:0.75rem;
+    }
+    @media (min-width: 720px) {
+      .char-select-layout {
+        flex-direction:row;
+        align-items:stretch;
+      }
+    }
+    .char-view {
+      flex:1;
+      min-width:0;
+      background: radial-gradient(circle at 0 0,#fee2e2 0,#fee2e2 25%,transparent 55%),
+                  radial-gradient(circle at 100% 100,#ddd6fe 0,#ddd6fe 25%,transparent 55%),
+                  #fef3c7;
+      border-radius:1rem;
+      padding:0.7rem;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .char-title {
+      font-size:0.8rem;
+      font-weight:700;
+      color:#9f1239;
+      margin-bottom:0.35rem;
+    }
+    .char-canvas-wrapper {
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin:0.2rem 0 0.4rem;
+    }
+    .char-canvas {
+      width:140px;
+      height:180px;
+      border-radius:0.9rem;
+      background:#f9fafb;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      box-shadow:0 10px 24px rgba(148,163,184,0.7);
+      position:relative;
+      overflow:hidden;
+    }
+    .stick-bg {
+      position:absolute;
+      inset:4px;
+      border-radius:0.75rem;
+      opacity:0.18;
+    }
+    .stickman {
+      width:60px;
+      height:120px;
+      position:relative;
+    }
+    .stickman-circle {
+      width:32px; height:32px;
+      border-radius:50%;
+      border:4px solid currentColor;
+      position:absolute;
+      left:50%; top:0;
+      transform:translateX(-50%);
+      background:#fff;
+    }
+    .stickman-body {
+      position:absolute;
+      left:50%; top:32px;
+      width:4px; height:46px;
+      background:currentColor;
+      transform:translateX(-50%);
+    }
+    .stickman-arm {
+      position:absolute;
+      top:42px;
+      width:40px; height:4px;
+      background:currentColor;
+      left:50%;
+      transform:translateX(-50%);
+    }
+    .stickman-leg-left,
+    .stickman-leg-right {
+      position:absolute;
+      top:76px;
+      width:4px; height:40px;
+      background:currentColor;
+      transform-origin:top;
+    }
+    .stickman-leg-left { left:50%; transform:translateX(-9px) rotate(-12deg); }
+    .stickman-leg-right { left:50%; transform:translateX(5px) rotate(12deg); }
+    .stick-face {
+      position:absolute;
+      left:50%; top:7px;
+      transform:translateX(-50%);
+      width:24px; height:18px;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 3px;
+    }
+
+    .stick-accessory {
+      position:absolute;
+      right:0; top:0;
+      font-size:16px;
+    }
+
+    .char-arrows {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:100%;
+      margin-top:0.2rem;
+    }
+    .arrow-btn {
+      width:32px; height:32px;
+      border-radius:999px;
+      background:#fecaca;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.1rem;
+      color:#c2410c;
+      box-shadow:0 4px 10px rgba(248,113,113,0.7);
+    }
+    .char-color-name {
+      font-size:0.82rem;
+      font-weight:700;
+      color:#b91c1c;
+      cursor:pointer;
+      padding:0.15rem 0.5rem;
+      border-radius:999px;
+      background:rgba(255,255,255,0.8);
+      box-shadow:0 6px 12px rgba(248,113,113,0.5);
+    }
+
+    .char-form {
+      flex:1.2;
+      min-width:0;
+      padding:0.1rem 0.4rem 0.4rem;
+    }
+    .field {
+      margin-bottom:0.45rem;
+    }
+    .field label {
+      display:block;
+      font-size:0.78rem;
+      font-weight:600;
+      margin-bottom:0.15rem;
+      color:#374151;
+    }
+    .field small {
+      display:block;
+      font-size:0.7rem;
+      color:#9ca3af;
+      margin-top:0.05rem;
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      width:100%;
+      padding:0.32rem 0.45rem;
+      border-radius:0.6rem;
+      border:1px solid #d1d5db;
+      font-size:0.8rem;
+      font-family:inherit;
+      resize:vertical;
+    }
+    .field textarea { min-height:54px; }
+    .error-text {
+      font-size:0.7rem;
+      color:#b91c1c;
+      margin-top:0.1rem;
+      white-space:pre-wrap;
+    }
+    .success-text {
+      font-size:0.7rem;
+      color:#15803d;
+      margin-top:0.1rem;
+      white-space:pre-wrap;
+    }
+
+    /* ===== Step2 抽卡 ===== */
+.board-wrapper {
+  width:100%;
+  aspect-ratio:16 / 9;  /* 根据您的图片比例调整 */
+  max-width:800px;      /* 限制最大宽度 */
+  margin:0 auto;        /* 居中 */
+  position:relative;
+  border-radius:1.4rem;
+  overflow:hidden;
+  box-shadow:0 18px 45px rgba(148,163,184,0.45);
+  background-color:#e5e7eb;
+  background-image:url("Game Board.jpeg");
+  background-size:100% 100%;  /* 拉伸铺满 */
+  background-repeat:no-repeat;
+}
+    .board-card {
+      position:absolute;
+      width:12%;
+      max-width:110px;
+      aspect-ratio:2.3 / 3.5;
+      border-radius:0.9rem;
+      background:white;
+      box-shadow:0 10px 20px rgba(15,23,42,0.5);
+      transform-origin:center;
+      transition:transform 0.2s ease, box-shadow 0.2s ease;
+      cursor:pointer;
+      display:flex; flex-direction:column;
+      padding:0.35rem 0.4rem;
+      border:2px solid transparent;
+    }
+    .board-card:hover {
+      transform: translateY(-4px) rotate(var(--rotation,0deg));
+      box-shadow:0 14px 28px rgba(15,23,42,0.65);
+    }
+    .board-card-domain {
+      font-size:0.65rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.04em; color:#6b21a8; margin-bottom:0.2rem;
+    }
+    .board-card-title {
+      font-size:0.75rem; font-weight:700; color:#111827;
+      line-height:1.3; flex:1;
+    }
+    .board-card-footer {
+      margin-top:0.15rem; display:flex; justify-content:flex-end;
+    }
+    .board-card-footer button {
+      font-size:0.65rem; padding:0.12rem 0.42rem; border-radius:999px;
+    }
+
+    .pos-tech    { left:68%; top:22%; --rotation:12deg; }
+    .pos-economy { left:55%; top:9%;  --rotation:-4deg; }
+    .pos-env     { left:33%; top:9%;  --rotation:4deg; }
+    .pos-govern  { left:18%; top:28%; --rotation:-8deg; }
+    .pos-well    { left:27%; top:63%; --rotation:6deg; }
+    .pos-socio   { left:53%; top:63%; --rotation:-6deg; }
+
+    .selected-waves-list{
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:0.6rem;
+    }
+    .wave-chip{
+      border-radius:0.9rem; border:1px solid #ffe4f2;
+      padding:0.5rem 0.6rem; background:#fff7fb;
+      font-size:0.78rem; display:flex; flex-direction:column; gap:0.18rem;
+      box-shadow:0 6px 18px rgba(248,113,166,0.25);
+    }
+
+    .value-tag {
+      display:inline-flex; padding:0.18rem 0.65rem;
+      margin:0.12rem; border-radius:999px;
+      border:1px solid #fecaca; font-size:0.78rem;
+      cursor:pointer; user-select:none; background:#fff1f2;
+    }
+    .value-tag.selected {
+      background:linear-gradient(135deg,#fb7185,#e879f9);
+      border-color:transparent; color:white;
+      box-shadow:0 6px 16px rgba(236,72,153,0.55);
+    }
+
+    .wave-impact-card{
+      border-radius:0.9rem; border:1px solid #fed7e2;
+      padding:0.6rem 0.7rem; background:#fff7fb;
+      font-size:0.78rem;
+    }
+    .badge {
+      display:inline-flex;
+      align-items:center;
+      padding:0.08rem 0.45rem;
+      border-radius:999px;
+      font-size:0.7rem;
+      background:#e0f2fe;
+      color:#0369a1;
+      margin-bottom:0.2rem;
+    }
+
+    .pill-status {
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: #eef2ff;
+      color: #3730a3;
+      border: 1px solid #c7d2fe;
+    }
+    .pill-status.done {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #166534;
+    }
+
+    .text-xs { font-size:0.75rem; }
+    .text-muted { color:#6b7280; }
+
+    .report-box{
+      border-radius:0.7rem; border:1px solid #fed7e2;
+      background:#fff7fb; padding:0.6rem 0.7rem;
+      max-height:360px; overflow:auto; white-space:pre-wrap;
+      font-size:0.78rem; line-height:1.6;
+    }
+
+    /* ========== Step4 视觉：粉色渐变背景 + 圆形菜单 ========== */
+
+    .step4-shell {
+      border-radius:1.2rem;
+      padding:0.7rem 0.7rem 0.6rem;
+      background: radial-gradient(circle at 10% 0,#fbcfe8 0,transparent 55%),
+                 radial-gradient(circle at 100% 0,#93c5fd 0,transparent 55%),
+                 radial-gradient(circle at 0 100%,#fef3c7 0,transparent 55%),
+                 #020617;
+      box-shadow:0 20px 45px rgba(15,23,42,0.8);
+      color:#f9fafb;
+    }
+    .step4-top-guide {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:0.6rem;
+      margin-bottom:0.4rem;
+      font-size:0.78rem;
+    }
+    .step4-top-left {
+      display:flex;
+      flex-direction:column;
+      gap:0.15rem;
+    }
+    .step4-title-main {
+      font-weight:700;
+    }
+    .step4-title-sub {
+      font-size:0.75rem;
+      color:#e5e7eb;
+    }
+    .step4-pill-progress {
+      display:inline-flex;
+      align-items:center;
+      gap:0.4rem;
+      padding:0.18rem 0.9rem;
+      border-radius:999px;
+      background:rgba(15,23,42,0.9);
+      box-shadow:0 10px 24px rgba(15,23,42,0.9);
+      font-size:0.75rem;
+    }
+    .step4-pill-dot {
+      width:8px;height:8px;border-radius:999px;
+      background:#38bdf8;
+      box-shadow:0 0 0 3px rgba(56,189,248,0.35);
+    }
+    .step4-pill-count {
+      font-weight:600;
+      color:#e0f2fe;
+    }
+    .step4-pill-check {
+      font-size:0.7rem;
+      color:#a5b4fc;
+    }
+
+    .step42-layout {
+      display:flex;
+      gap:0.75rem;
+      margin-top:0.45rem;
+    }
+    @media (max-width: 900px) {
+      .step42-layout {
+        flex-direction:column;
+      }
+    }
+
+    .stage-orbit-shell {
+      flex:1;
+      min-width:0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    /* 舞台背景：单层平滑渐变，不再中间断开、切小人 */
+    .stage-orbit-inner {
+      width:270px;
+      height:270px;
+      border-radius:999px;
+      background: radial-gradient(circle at 30% 0,#f9e5ff 0,transparent 60%),
+                 radial-gradient(circle at 0 100%,#fde2e2 0,transparent 65%),
+                 radial-gradient(circle at 100% 100%,#dbeafe 0,transparent 65%),
+                 #1f2937;
+      box-shadow:0 20px 45px rgba(15,23,42,0.9);
+      position:relative;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+    }
+
+    .orbit-stage-card {
+      width:165px;
+      height:210px;
+      border-radius:1.3rem;
+      background: radial-gradient(circle at 50% 0,rgba(255,255,255,0.16) 0,transparent 55%),
+                  linear-gradient(to bottom,#020617 0,#020617 55%,rgba(15,23,42,0.9) 100%);
+      box-shadow:0 20px 40px rgba(15,23,42,1);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:flex-start;
+      position:relative;
+      overflow:hidden;
+      padding-top:10px;
+      padding-bottom:40px; /* 给 Wave 名预留底部空间 */
+    }
+    .orbit-stage-floor {
+      position:absolute;
+      left:-10%; right:-10%; bottom:-8%;
+      height:40%;
+      background:radial-gradient(circle at 50% 0,rgba(148,163,184,0.9) 0,transparent 80%);
+      opacity:0.9;
+    }
+
+    .stage-stick{
+      position:relative;
+      width:65px;
+      height:130px;
+      z-index:2;
+      color:#22c55e;
+    }
+    .stage-stick .stickman-circle,
+    .stage-stick .stickman-body,
+    .stage-stick .stickman-arm,
+    .stage-stick .stickman-leg-left,
+    .stage-stick .stickman-leg-right{
+      background:currentColor;
+      border-color:currentColor;
+    }
+    .stage-stick .stickman-circle{
+      background:#f9fafb;
+    }
+    .stage-face{
+      position:absolute;
+      left:50%; top:7px;
+      transform:translateX(-50%);
+      width:24px; height:18px;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 3px;
+    }
+
+    .head-emoji{
+      position:absolute;
+      top:-10px;
+      right:-8px;
+      font-size:20px;
+      filter:drop-shadow(0 0 4px rgba(248,250,252,0.9));
+      display:none;
+    }
+    .neck-emoji{
+      position:absolute;
+      top:34px;
+      left:50%;
+      transform:translateX(-50%);
+      font-size:18px;
+      filter:drop-shadow(0 0 4px rgba(248,250,252,0.9));
+      display:none;
+    }
+    .body-deco{
+      position:absolute;
+      top:60px;
+      left:50%;
+      transform:translateX(-50%);
+      width:40px;
+      height:40px;
+    }
+    .body-dot{
+      position:absolute;
+      width:16px;
+      height:16px;
+      border-radius:999px;
+      background:radial-gradient(circle at 30% 0,#fff 0,transparent 60%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:11px;
+      color:#0f172a;
+      box-shadow:0 0 5px rgba(248,250,252,0.9);
+      display:none;
+    }
+    .body-dot.slot-1{ top:3px; left:2px; }
+    .body-dot.slot-2{ top:3px; right:2px; }
+    .body-dot.slot-3{ bottom:4px; left:50%; transform:translateX(-50%); }
+
+    /* 当前 Wave 文案：放在小人正下方，明显可见 */
+    .stage-wave-caption{
+      position:absolute;
+      bottom:8px;
+      left:10px; right:10px;
+      text-align:center;
+      font-size:0.76rem;
+      color:#f9fafb;
+      font-weight:600;
+      text-shadow:0 2px 6px rgba(15,23,42,0.9);
+      line-height:1.3;
+    }
+    .stage-wave-caption span{
+      display:block;
+    }
+    .stage-wave-caption .wave-sub{
+      font-size:0.7rem;
+      opacity:0.85;
+      font-weight:400;
+    }
+
+    /* 四个圆形 part 按钮，整体外扩一点，避免离小人太近 */
+    .orbit-part-btn {
+      position:absolute;
+      width:78px; height:78px;
+      border-radius:999px;
+      background:rgba(15,23,42,0.9);
+      border:2px solid rgba(251,207,232,0.8);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      font-size:0.7rem;
+      text-align:center;
+      color:#f9fafb;
+      box-shadow:0 10px 24px rgba(15,23,42,0.9);
+      cursor:pointer;
+      transition:transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    .orbit-part-btn span:first-child{
+      font-size:0.9rem;
+      margin-bottom:0.1rem;
+    }
+    .orbit-part-btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 32px rgba(15,23,42,1);
+    }
+    .orbit-part-btn.completed{
+      background:linear-gradient(135deg,#22c55e,#a3e635);
+      border-color:transparent;
+      color:#022c22;
+    }
+    .orbit-part-check{
+      position:absolute;
+      top:-5px; right:-5px;
+      width:18px; height:18px;
+      border-radius:999px;
+      background:#22c55e;
+      color:#022c22;
+      font-size:0.75rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 0 0 2px rgba(15,23,42,0.9);
+      opacity:0;
+      transform:scale(0.8);
+      transition:opacity 0.15s ease, transform 0.15s ease;
+    }
+    .orbit-part-btn.completed .orbit-part-check{
+      opacity:1;
+      transform:scale(1);
+    }
+
+/* 调整四个圆圈位置：左右各两枚（不再遮挡小人下方文字） */
+    .orbit-part-1 {   /* 左上：任务类型 */
+      left: -10%;
+      top: 18%;
+      transform: translate(0, -50%);
+    }
+    .orbit-part-2 {   /* 右上：影响对象 */
+      right: -10%;
+      top: 18%;
+      transform: translate(0, -50%);
+    }
+    .orbit-part-3 {   /* 左下：STEM 能力 */
+      left: -10%;
+      bottom: 18%;
+      transform: translate(0, 50%);
+    }
+    .orbit-part-4 {   /* 右下：一句任务 */
+      right: -10%;
+      bottom: 18%;
+      transform: translate(0, 50%);
+    }
+
+    @media (max-width: 600px){
+      .orbit-part-1 {
+        left: -4%;
+        top: 12%;
+      }
+      .orbit-part-2 {
+        right: -4%;
+        top: 12%;
+      }
+      .orbit-part-3 {
+        left: -4%;
+        bottom: 12%;
+      }
+      .orbit-part-4 {
+        right: -4%;
+        bottom: 12%;
+      }
+    }
+
+    .step42-right-panel{
+      flex:1.2;
+      min-width:0;
+      border-radius:1.1rem;
+      background:rgba(15,23,42,0.92);
+      box-shadow:0 14px 32px rgba(15,23,42,0.9);
+      padding:0.7rem 0.7rem 0.7rem;
+      display:flex;
+      flex-direction:column;
+      gap:0.5rem;
+    }
+    .step42-right-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:0.4rem;
+      font-size:0.78rem;
+      color:#e5e7eb;
+    }
+    .step42-right-title{
+      font-weight:600;
+    }
+    .step42-right-sub{
+      font-size:0.72rem;
+      color:#a5b4fc;
+    }
+    .step42-right-body{
+      margin-top:0.4rem;
+      flex:1;
+      overflow:auto;
+    }
+
+    .accessory-panel{
+      border-radius:0.95rem;
+      background:radial-gradient(circle at 0 0,rgba(255,255,255,0.08) 0,transparent 55%),
+                 #020617;
+      padding:0.55rem 0.6rem 0.6rem;
+      border:1px solid rgba(148,163,184,0.6);
+    }
+    .accessory-title{
+      font-size:0.8rem;
+      font-weight:600;
+      color:#e5e7eb;
+      margin-bottom:0.3rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:0.4rem;
+    }
+    .accessory-title span:last-child{
+      font-size:0.7rem;
+      color:#9ca3ff;
+    }
+
+    /* 任务类型 & 影响对象：仍用自适应 grid */
+    .accessory-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+      gap:0.3rem;
+    }
+
+    .accessory-item{
+      border-radius:0.8rem;
+      background:#f9fafb;
+      padding:0.26rem 0.38rem;
+      font-size:0.7rem;
+      cursor:pointer;
+      border:1px solid transparent;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      justify-content:center;
+      gap:0.06rem;
+      min-height:58px;
+      transition:box-shadow 0.16s ease, transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+      color:#111827; /* 默认：深色文字，清晰可见 */
+    }
+    .accessory-item:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 14px rgba(15,23,42,0.25);
+    }
+    .accessory-item.active{
+      border-color:#ec4899;
+      box-shadow:0 0 0 2px rgba(236,72,153,0.7);
+      background:linear-gradient(135deg,#ffe4f6,#fff);
+      color:#db2777; /* 选中：整体文字偏粉色 */
+    }
+    .accessory-item.active .accessory-label-main{
+      color:#111827;
+    }
+    .accessory-item.active .accessory-label-sub{
+      color:#4b5563;
+    }
+    .accessory-item.disabled{
+      opacity:0.35;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .accessory-emoji{
+      font-size:1.05rem;
+      margin-right:0.12rem;
+    }
+    .accessory-label-main{
+      font-weight:600;
+      font-size:0.72rem;
+      color:inherit; /* 跟随父级颜色：默认黑，选中粉 */
+    }
+    .accessory-label-sub{
+      font-size:0.68rem;
+      color:#6b7280;
+    }
+    .accessory-group-title{
+      font-size:0.75rem;
+      font-weight:600;
+      color:#f9a8d4;
+      margin-top:0.3rem;
+      margin-bottom:0.1rem;
+    }
+
+    /* STEM 能力分组：每个 group 单独一列 */
+    .stem-columns {
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.5rem;
+    }
+    .stem-column {
+      flex:1;
+      min-width:150px;
+    }
+    .stem-column-title{
+      font-size:0.76rem;
+      font-weight:600;
+      color:#f9a8d4;
+      margin-bottom:0.15rem;
+    }
+    .stem-column-list{
+      display:flex;
+      flex-direction:column;
+      gap:0.25rem;
+    }
+    .stem-column-item{
+      border-radius:0.8rem;
+      background:#f9fafb;
+      padding:0.24rem 0.36rem;
+      font-size:0.7rem;
+      cursor:pointer;
+      border:1px solid transparent;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:0.4rem;
+      min-height:40px;
+      transition:box-shadow 0.16s ease, transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+      color:#111827; /* 默认黑字 */
+    }
+    .stem-column-item:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 14px rgba(15,23,42,0.25);
+    }
+    .stem-column-item.active{
+      border-color:#ec4899;
+      box-shadow:0 0 0 2px rgba(236,72,153,0.7);
+      background:linear-gradient(135deg,#ffe4f6,#fff);
+      color:#db2777; /* 选中：整体文字偏粉色 */
+    }
+    .stem-column-item .accessory-label-main{
+      color:inherit;
+    }
+    .stem-column-item .accessory-label-sub{
+      color:#6b7280;
+    }
+    .stem-column-item.active .accessory-label-sub{
+      color:#fb7185;
+    }
+    .stem-column-item.disabled{
+      opacity:0.35;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+
+    .orbit-bottom-bar{
+      margin-top:0.6rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:0.5rem;
+      font-size:0.75rem;
+      color:#e5e7eb;
+    }
+    .text-pill{
+      display:inline-flex;
+      align-items:center;
+      padding:0.08rem 0.5rem;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.35);
+      font-size:0.72rem;
+    }
+
+    .btn-ghost-dark{
+      padding:0.32rem 0.9rem;
+      border-radius:999px;
+      background:rgba(15,23,42,0.85);
+      color:#e5e7eb;
+      font-size:0.78rem;
+      font-weight:600;
+      box-shadow:0 10px 24px rgba(15,23,42,0.9);
+      border:1px solid rgba(148,163,184,0.6);
+      display:inline-flex;
+      align-items:center;
+      gap:0.25rem;
+    }
+    .btn-ghost-dark.disabled{
+      opacity:0.4;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .btn-ghost-light{
+      padding:0.32rem 1rem;
+      border-radius:999px;
+      background:linear-gradient(135deg,#38bdf8,#a855f7);
+      color:#f9fafb;
+      font-size:0.8rem;
+      font-weight:700;
+      box-shadow:0 12px 30px rgba(59,130,246,0.7);
+      display:inline-flex;
+      align-items:center;
+      gap:0.25rem;
+    }
+
+  </style>
+</head>
+<body>
+<div class="app-root">
+
+  <section id="screen-start" class="fade-in">
+<div class="logo-pill">
+  <span class="logo-pill-dot"></span>
+  <span>Future Waves · 2036 Career Card Room · 2036职业卡牌房间</span>
+</div>
+<div class="start-title">🎮 Future Career Lab 未来职业实验室</div>
+<p class="start-sub" style="margin-bottom:0.5rem;">
+  <strong> See Your 2036 Self </strong>
+</p>
+<p style="font-size:0.85rem; margin-bottom:1rem; color:#fef9c3;">
+  👤 Who am I? → 
+  🌊 How does the world change? → 
+  💭 What do I care about? → 
+  🛠️ What can I do? → 
+  📄 Where am I going?
+</p>
+<p class="start-sub">
+  Click "GAME START" to enter the game<br>
+</p>
+<button class="btn-main" id="btnGameStart">GAME START · 开始游戏</button>
+  </section>
+
+  <section id="screen-game">
+    <header class="top-bar">
+<div class="top-title">
+  <span style="font-weight:800;">🎴 Future Waves</span>
+  <span class="top-tag">Card Missions · 卡牌任务</span>
+</div>
+<div class="top-res">
+  <div class="res-chip"><span class="res-dot"></span><span id="resStep">Step 1 / 5 · 第1步/5</span></div>
+  <div class="res-chip"><span class="res-dot green"></span><span id="resDone">Done 0 · 完成0</span></div>
+</div>
+    </header>
+
+<div class="hint-bar" style="background: linear-gradient(135deg, #818cf8, #c084fc); color: white;">
+  <span>🎯 <span id="currentStepMeaning">Click Card 1 to start creating your future identity 点击卡牌1开始创建你的未来身份</span></span>
+  <span class="hint-step" id="hintStepText">Current: Card 1 当前：卡牌1</span>
+</div>
+
+    <div class="card-row" id="cardRow"></div>
+    <div class="progress-dots" id="progressDots"></div>
+
+    <nav class="bottom-menu">
+
+        <button class="menu-btn" title="卡牌1：我是谁？">👤Who am i in future</button>
+  <button class="menu-btn" title="卡牌2：世界怎么变？">🌊How the word become</button>
+  <button class="menu-btn" title="卡牌3：我在乎什么？">💭What i care about</button>
+  <button class="menu-btn" title="卡牌4：我能做什么？">🛠️What i want to do</button>
+  <button class="menu-btn" title="卡牌5：我去向何方？">📄The future</button>
+    </nav>
+  </section>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal fade-in">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modalTitle"></div>
+          <div style="font-size:0.78rem;color:#6b7280;" id="modalSub"></div>
+        </div>
+        <span class="modal-tag" id="modalTag"></span>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer" id="modalFooter"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+  // ===== Kozi / 扣子 AI 助手配置 =====
+// Kozi / Coze AI 链接
+const KOZI_AI_URL = "https://www.coze.cn/store/agent/7617096613026152489?bot_id=true";
+
+// 改造版：在当前页用弹窗 + iframe 打开
+function openKoziAssistant() {
+  // 1）如果有小助手菜单，先关掉它
+  const aiMenu = document.getElementById("aiMenuModal");
+  if (aiMenu) {
+    aiMenu.remove();   // 或者 aiMenu.style.display = "none";
+  }
+
+  // 2）再打开 Coze 弹窗
+  const aiModal = document.getElementById("aiModal");
+  const aiFrame = document.getElementById("aiFrame");
+  if (!aiModal || !aiFrame) {
+    // 如果没找到容器就 fallback 到新窗口
+    window.open(KOZI_AI_URL, "_blank");
+    return;
+  }
+  aiFrame.src = KOZI_AI_URL;
+  aiModal.style.display = "flex";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const closeAiBtn = document.getElementById("btnCloseAiModal");
+  if (!closeAiBtn) return;
+  closeAiBtn.onclick = () => {
+    const aiModal = document.getElementById("aiModal");
+    const aiFrame = document.getElementById("aiFrame");
+    if (aiModal) aiModal.style.display = "none";
+    if (aiFrame) aiFrame.src = "";
+  };
+});
+
+  const STICK_COLORS = [
+    { id: "red",   defaultName: "Little Red",  color: "#f97373" },
+    { id: "orange",defaultName: "Little Orange",  color: "#fb923c" },
+    { id: "yellow",defaultName: "Little Yellow",  color: "#facc15" },
+    { id: "green", defaultName: "Little Green",  color: "#22c55e" },
+    { id: "cyan",  defaultName: "Little Cyan",  color: "#14b8a6" },
+    { id: "blue",  defaultName: "Little Blue",  color: "#3b82f6" },
+    { id: "purple",defaultName: "Little Purple",  color: "#a855f7" },
+    { id: "black", defaultName: "Little Black",  color: "#111827" },
+  ];
+
+  const SKIN_PRESETS = [
+    { id:"skin1",name:"探索者皮肤",color:"#f97373",bg:"#fee2e2",leftEye:"•",rightEye:"•",mouth:"‿",accessory:"🎒",desc:"红色探索者，背着背包到处跑。" },
+    { id:"skin2",name:"工程师皮肤",color:"#3b82f6",bg:"#dbeafe",leftEye:"◕",rightEye:"◕",mouth:"_",accessory:"🛠️",desc:"蓝色小工程师，手里有工具。" },
+    { id:"skin3",name:"治疗者皮肤",color:"#22c55e",bg:"#dcfce7",leftEye:"•",rightEye:"•",mouth:"﹏",accessory:"💚",desc:"绿色治愈者，偏关怀型任务。" },
+    { id:"skin4",name:"策划者皮肤",color:"#facc15",bg:"#fef9c3",leftEye:"•",rightEye:"•",mouth:"︿",accessory:"📊",desc:"拿图表的策划 / 研究员。" },
+    { id:"skin5",name:"黑客皮肤",color:"#111827",bg:"#e5e7eb",leftEye:"•",rightEye:"x",mouth:"―",accessory:"💾",desc:"偏安全 / 系统维护的黑客风。" },
+    { id:"skin6",name:"艺术家皮肤",color:"#a855f7",bg:"#f3e8ff",leftEye:"☆",rightEye:"☆",mouth:"ω",accessory:"🎨",desc:"紫色艺术家，适合创意任务。" },
+    { id:"skin7",name:"指挥官皮肤",color:"#fb923c",bg:"#ffedd5",leftEye:"•",rightEye:"•",mouth:"︶",accessory:"🎧",desc:"橙色指挥官，偏组织协调。" },
+  ];
+
+  const MAJOR_OPTIONS = [
+    "Computer Science计算机科学","Software Engineering软件工程","Cybersecurity网络空间安全","Artificial Intelligence人工智能","Data Science数据科学",
+    "Electronic Information Engineering电子信息工程","Automation自动化","Mechanical Engineering机械工程","Civil Engineering土木工程","Transportation Engineering交通工程",
+    "Environmental Science环境科学","Environmental Engineering环境工程","New Energy Science and Engineering新能源科学与工程","Biomedical Engineering生物医学工程",
+    "Basic Medical Sciences基础医学","Clinical Medicine临床医学","Pharmacy药学","Nursing护理学",
+    "Psychology心理学","Sociology社会学","Education教育学","Chinese Language and Literature汉语言文学","Journalism and Communication新闻传播学","History历史学",
+    "Economics经济学","Finance金融学","International Economics and Trade国际经济与贸易","Accounting会计学","Business Administration工商管理","Marketing市场营销",
+    "Design Studies设计学","Visual Communication Design视觉传达设计","Industrial Design工业设计"," Interaction Design交互设计","Architecture建筑学","Urban and Rural Planning城乡规划",
+    "Musicology音乐学","Drama and Film Studies戏剧与影视学","Photography摄影","Animation动画",
+    "Marine Science海洋科学","Geographic Information Science地理信息科学","Geophysics地球物理学","Materials Science and Engineering材料科学与工程",
+    "Aerospace Engineering航空航天工程","Energy and Power Engineering能源动力工程",
+    "Law法学","Public Administration公共管理","International Relations国际关系"
+  ];
+
+const MISSIONS = [
+  { 
+    id: 1, 
+    name: "Character Entry", 
+    lv: "Lv 01", 
+    desc: "set your future role", 
+    purpose: "👤 Who am I? —— Build your future identity 建立你的未来身份",
+    tag: "Role Intro" 
+  },
+  { 
+    id: 2, 
+    name: "Draw Waves", 
+    lv: "Lv 02", 
+    desc: "Draw Future Waves.", 
+    purpose: "🌊 How does the world change?—— Sense future trends 感知未来趋势",
+    tag: "Draw" 
+  },
+  { 
+    id: 3, 
+    name: "Squad & Dress-up", 
+    lv: "Lv 03", 
+    desc: "Select key waves + values", 
+    purpose: "💭 What do I care about? —— Clarify inner motivation 明确内在动力",
+    tag: "Squad" 
+  },
+  { 
+    id: 4, 
+    name: "Brainstorm", 
+    lv: "Lv 04", 
+    desc: "STEM + mission cards", 
+    purpose: "🛠️ What I ant to do?—— Design concrete actions 设计具体行动",
+    tag: "Brainstorm" 
+  },
+  { 
+    id: 5, 
+    name: " Generate Report", 
+    lv: "Lv 05", 
+    desc: "Get your 2036 career story", 
+    purpose: "📄 The Future? —— Get your 2036 career story看见未来自己",
+    tag: "Report" 
+  },
+];
+
+  const state = {
+    currentStep: 1,
+    done: {},
+    character: { colorIndex: 0, major: "", intro: "", identity: "" },
+    stickNames: STICK_COLORS.map(c => c.defaultName),
+
+    drawnWavesByDomain: {},
+    keyWaveIds: [],
+    wpSelected: [],  // 新增
+    achievements: [],  // 记录获得的成就
+    valuePoints: {},
+    scenario: null,
+    scenarioChoice: null,
+    stemBaseText: "",
+    waveTasks: {},   // waveId -> {missionType,targetGroup,stemSkills,oneLiner,skinId}
+    shock: null,
+    text2030: "",
+  text2030Place: "",  // 新增
+  text2030Action: "", // 新增
+  text2030Wave: "",   // 新增
+  text2030Decision: "", // 新增
+  text2036Title: "",  // 新增
+  text2036Line: "",   // 新增
+  text2036Extra: "",  // 新增
+    text2036: "",
+    reportText: "",
+    step4CurrentIndex: 0,
+    step4Page: "4.1",   // "4.1" | "4.2" | "4.3"
+    step42ActivePanel: "type", // "type" | "target" | "stem" | "line"
+  };
+
+  const VALUE_ATTRS = [
+    { id: "Impact", label: "影响力（Impact）", examples: ["帮助他人", "改变社会"] },
+    { id: "Income", label: "收入 / 物质（Income）", examples: ["赚钱", "职业机会"] },
+    { id: "Fun", label: "好玩 & 创意（Fun）", examples: ["有趣的工作", "创意工作"] },
+    { id: "Stability", label: "稳定 & 安全（Stability）", examples: ["工作保障", "轻松的工作"] },
+    { id: "Growth", label: "成长 & 学习（Growth）", examples: ["学习新技能", "发挥天赋"] },
+    { id: "Connection", label: "关系 & 归属（Connection）", examples: ["与人协作", "建立友谊", "陪伴家人"] },
+  ];
+  const VALUE_POINTS_TOTAL = 6;
+  VALUE_ATTRS.forEach(a => state.valuePoints[a.id] = 0);
+
+  const DOMAINS = [
+    { id: "Technology", label: "Technology", posClass: "pos-tech" },
+    { id: "Economy", label: "Economy", posClass: "pos-economy" },
+    { id: "Environment & Sustainability", label: "Environment & Sustainability", posClass: "pos-env" },
+    { id: "Governance, Politics & Policies", label: "Governance, Politics & Policies", posClass: "pos-govern" },
+    { id: "Wellbeing", label: "Wellbeing", posClass: "pos-well" },
+    { id: "Socio-cultural", label: "Socio-cultural", posClass: "pos-socio" },
+  ];
+
+  const WAVE_POOL = [
+    {id:"eco-future-workplace",domain:"Economy",title:"Future Workplace",stage:"Driving",description:"The evolving nature of work, including remote work, technology integration, and new organizational structures."},
+    {id:"eco-space-data-economy",domain:"Economy",title:"Space Data Economy",stage:"Emerging",description:"Businesses built on selling satellite imagery, Earth observation data, and space-derived analytics to commercial and government customers."},
+    {id:"eco-he-economy",domain:"Economy",title:"He Economy",stage:"Driving",description:"The rising economic power of male consumers driven by social changes like later marriages and evolving masculinity norms."},
+    {id:"env-green-concrete",domain:"Environment & Sustainability",title:"Green Concrete",stage:"Brewing",description:"Low-carbon cement and concrete alternatives that reduce the construction industry's significant carbon footprint."},
+    {id:"env-plant-milk",domain:"Environment & Sustainability",title:"Plant Milk",stage:"Trending",description:"Extracting nutritious, sustainable plant-based milks from diverse botanical sources like oats, hemp, bananas using low-impact pressing methods."},
+    {id:"env-decarbonisation",domain:"Environment & Sustainability",title:"Decarbonisation",stage:"Driving",description:"The process of reducing the amount of greenhouse gases produced by the burning of fossil fuels."},
+    {id:"env-direct-air-capture",domain:"Environment & Sustainability",title:"Direct Air Capture",stage:"Brewing",description:"Technologies that capture carbon dioxide directly from the atmosphere for storage or utilization, with experimental costs ranging from $200-700 per tonne."},
+    {id:"env-orbital-debris",domain:"Environment & Sustainability",title:"Orbital Debris Concern",stage:"Trending",description:"Growing recognition of space junk as an environmental threat to orbital sustainability and future space access."},
+    {id:"env-earth-observation-climate",domain:"Environment & Sustainability",title:"Earth Observation for Climate",stage:"Driving",description:"Satellite constellations monitoring greenhouse gases, sea levels, deforestation, and climate indicators from orbit."},
+    {id:"gov-neuropolitics",domain:"Governance, Politics & Policies",title:"Neuropolitics",stage:"Signaling",description:"The application of neuroscience to political messaging, persuasion techniques, and understanding voter behavior."},
+    {id:"gov-eu-ai-act",domain:"Governance, Politics & Policies",title:"EU AI Act",stage:"Trending",description:"EU passed first extensive legal framework regulating AI development and use, undergoing final negotiations before enactment."},
+    {id:"gov-reskilling-imperative",domain:"Governance, Politics & Policies",title:"Reskilling imperative",stage:"Emerging",description:"Significant need for retraining and reskilling workers for occupations of the future."},
+    {id:"gov-right-to-be-forgotten",domain:"Governance, Politics & Policies",title:"Right to be forgotten",stage:"Signaling",description:"Right to have personal info removed from internet gaining legal ground after court rulings."},
+    {id:"gov-health-public-duty",domain:"Governance, Politics & Policies",title:"Health as a public duty",stage:"Trending",description:"Governments are taking on larger roles in ensuring the health of their citizens through public health initiatives and healthcare systems."},
+    {id:"gov-bird-safe-skyline",domain:"Governance, Politics & Policies",title:"Bird-Safe Skyline Initiative",stage:"Signaling",description:"New York City legislation to reduce bird collisions by dimming city lights at night."},
+    {id:"gov-ai-facilitated-democracy",domain:"Governance, Politics & Policies",title:"AI-Facilitated Democracy",stage:"Brewing",description:"Experimental use of AI to support citizen consultations, summarize public input, and facilitate participatory decision-making."},
+    {id:"gov-space-militarization",domain:"Governance, Politics & Policies",title:"Space Militarization",stage:"Trending",description:"Nations developing space-based surveillance, missile tracking, and anti-satellite capabilities for defense."},
+    {id:"gov-interplanetary-governance",domain:"Governance, Politics & Policies",title:"Interplanetary Governance",stage:"Brewing",description:"Early thinking about legal and political frameworks for human settlements on Mars and beyond."},
+    {id:"soc-off-world-identity",domain:"Socio-cultural",title:"Off-World Identity",stage:"Signaling",description:"Emerging cultural discussions about what it means to be human living permanently away from Earth."},
+    {id:"soc-intentional-tech-use",domain:"Socio-cultural",title:"Intentional Tech Use",stage:"Brewing",description:"Growing practice of deliberately limiting and curating technology use to improve mental health and reclaim time."},
+    {id:"tech-nano-3d-printing",domain:"Technology",title:"Nano 3D printing",stage:"Brewing",description:"Printing of customized microscopic components with very high accuracy and precision."},
+    {id:"tech-social-commerce",domain:"Technology",title:"Social Commerce",stage:"Trending",description:"The use of social networks to facilitate e-commerce transactions."},
+    {id:"tech-human-robot-cowork",domain:"Technology",title:"Human-Robot co-working",stage:"Emerging",description:"Collaboration between humans and robots in the workplace, enhancing productivity and efficiency."},
+    {id:"tech-technology-driven-education",domain:"Technology",title:"Technology-driven education",stage:"Driving",description:"AI-driven adaptive learning apps and tutors can deliver education to students tailored to their individual strengths, weaknesses, and pace."},
+    {id:"tech-multiomic-sequencing",domain:"Technology",title:"Multiomic sequencing",stage:"Brewing",description:"Multiomic sequencing provides a holistic biological snapshot by analyzing metabolites and more, offering interconnected insights beyond single-layer analysis."},
+    {id:"tech-blockchain-digital-currencies",domain:"Technology",title:"Blockchain and digital currencies",stage:"Driving",description:"Decentralized digital ledgers enable secure peer-to-peer financial transactions and new economic models without centralized authorities."},
+    {id:"tech-super-efficient-solar",domain:"Technology",title:"Super-Efficient Solar",stage:"Emerging",description:"Adding a layer of crystals could drastically increase solar cell efficiency."},
+    {id:"tech-digital-provenance",domain:"Technology",title:"Digital Provenance",stage:"Emerging",description:"Technologies including watermarking and cryptographic verification to authenticate the origin and integrity of digital content, combating AI-generated misinformation."},
+    {id:"tech-ai-ethics",domain:"Technology",title:"AI ethics",stage:"Emerging",description:"Examining ethical implications of AI, including bias, transparency, and accountability to ensure technology respects human values."},
+    {id:"tech-p2p-open-source",domain:"Technology",title:"Peer-to-peer and open-source approaches",stage:"Driving",description:"The need for a central authority decreases as people are increasingly collaborating in software and beyond, directly with each other, without intermediaries."},
+    {id:"tech-soft-robotics",domain:"Technology",title:"Soft Robotics",stage:"Brewing",description:"Robots made from flexible, compliant materials inspired by biological organisms, enabling safer human interaction."},
+    {id:"tech-quantum-computing",domain:"Technology",title:"Quantum Computing",stage:"Emerging",description:"A type of computation that utilizes quantum bits to perform operations much faster than traditional computers."},
+    {id:"tech-urban-air-mobility",domain:"Technology",title:"Urban air mobility",stage:"Emerging",description:"A transportation system where small, automated or piloted aircraft transport people in urban areas."},
+    {id:"tech-deepseek-moment",domain:"Technology",title:"DeepSeek Moment",stage:"Signaling",description:"Chinese AI models achieving competitive performance with Western counterparts at significantly lower cost, disrupting AI economics."},
+    {id:"well-space-pharmaceuticals",domain:"Wellbeing",title:"Space Pharmaceuticals",stage:"Signaling",description:"Drugs developed or manufactured in microgravity offering improved formulations unavailable on Earth."},
+    {id:"well-social-prescriptions",domain:"Wellbeing",title:"Social prescriptions",stage:"Signaling",description:"Doctors prescribing \"social prescriptions\" against loneliness."},
+    {id:"well-quantified-patient",domain:"Wellbeing",title:"Quantified patient",stage:"Trending",description:"The use of technology to track personal data to improve patient health and wellness."},
+    {id:"well-chronobiology-medicine",domain:"Wellbeing",title:"Chronobiology Medicine",stage:"Brewing",description:"Medical treatments timed to circadian rhythms and biological clocks for improved efficacy and reduced side effects."},
+    {id:"well-body-hardware-implants",domain:"Wellbeing",title:"Body Hardware Implants",stage:"Trending",description:"Implantable devices or modifications that enhance or alter human physical capabilities or aesthetics."},
+    {id:"well-transhumanists",domain:"Wellbeing",title:"Transhumanists",stage:"Brewing",description:"People who believe in using technology to enhance human capabilities."},
+    {id:"well-psychedelic-assisted-therapy",domain:"Wellbeing",title:"Psychedelic-Assisted Therapy",stage:"Brewing",description:"Clinical use of psilocybin, MDMA, and other psychedelics combined with psychotherapy to treat depression, PTSD, and addiction."},
+  ];
+
+  const SHOCK_POOL = [
+    {name:"全球极端气候连锁事件",description:"2030 年起，连续数年的极端气候灾害叠加发生，大规模基础设施和农田受损，气候移民成为常态。"},
+    {name:"AI 智力信任危机",description:"多个关键领域暴露出严重的 AI 错误与偏见事件，人们开始普遍质疑 AI 的“智力”和中立性。"},
+    {name:"全球性公共卫生长尾危机",description:"一种低致死但高后遗症风险的长期病毒在全球流行，导致大规模慢性健康问题与劳动生产率下降。"},
+    {name:"关键数字基础设施瘫痪",description:"一次全球级别的网络攻击 / 日冕物质抛射事件使关键通信与卫星导航系统长时间瘫痪。"},
+    {name:"知识与教育极端不平等",description:"少数地区掌握最强大的 AI 教育资源，大多数人只能接触到滞后的简化知识服务，社会分化严重。"},
+  ];
+
+  const SCENARIO_POOL = [
+    {id:"ai-in-school",text:"The school announced that starting from next year, all courses must be integrated with AI-assisted teaching. What would you do? 学校宣布：从明年起，所有课程都必须接入 AI 辅助教学。你会怎么做？",
+      options:[
+        { id: "A", label: "Take the initiative to apply for a pilot class, master AI thoroughly and then share it with colleagues 主动申请试点班，把 AI 玩明白再分享给同事（Innavation / Impact）" },
+        { id: "B", label: "First, observe how other teachers use it, and then choose the best ones to learn from 先观察别的老师怎么用，再择优学习（Stability / Growth）" },
+        { id: "C", label: "Use AI only where it can help students with learning difficulties 只在能帮助学习困难学生的地方用 AI（Impact / Connection）" },
+      ]},
+    {id:"remote-work",text:"In 2030, your organization will open up Global remote collaboration positions, and you can freely choose your office location. 2030 年，你所在机构开放“全球远程协作”岗位，你可以自由选择办公地点。",
+      options:[
+        { id: "A", label: "Apply for a cross-border remote project immediately and go wherever there is an opportunity 立刻申请跨国远程项目，哪儿有机会去哪儿（Income / Fun）" },
+        { id: "B", label: "Only a hybrid mode with local dominance and occasional remote access is accepted 只接受本地为主、偶尔远程的混合模式（Stability）" },
+        { id: "C", label: "Give priority to remote arrangements that can take care of family companionship 优先选择能兼顾家人陪伴的远程安排（Connection）" },
+      ]},
+  ];
+
+  const DOMAIN_HINT = {
+    "Technology": "这是一张会明显改变工具和工作方式的科技向 Wave。",
+    "Economy": "这张 Wave 主要影响收入来源、市场和就业结构。",
+    "Environment & Sustainability": "这张 Wave 会改变资源使用方式和环境风险。",
+    "Governance, Politics & Policies": "这张 Wave 牵涉规则、法律与公共决策。",
+    "Socio-cultural": "这张 Wave 倾向价值观、文化和生活方式的改变。",
+    "Wellbeing": "这张 Wave 与身心健康、身体增强和生活质量密切相关。",
+  };
+
+  const MISSION_TYPES = [
+    "拯救类：解决风险 / 危机",
+    "建设类：搭建新系统 / 基础设施",
+    "服务类：为特定人群提供服务 / 支持",
+    "探索类：研究 / 试验 / 创新",
+    "教育类：科普 / 培训 / 提升认知",
+    "设计类：优化体验 / 产品 / 环境",
+    "管理类：制定规则 / 标准 / 流程",
+    "创业类：做新项目 / 新商业模式",
+  ];
+
+  const TARGET_GROUPS = [
+    { group: "个人与身边人", label: "自己 / 同学 / 学生" },
+    { group: "个人与身边人", label: "老师 / 同事 / 专业团队" },
+    { group: "组织与机构", label: "学校 / 教育机构" },
+    { group: "组织与机构", label: "企业 / 公司" },
+    { group: "组织与机构", label: "政府 / 公共部门 / NGO" },
+    { group: "社会与社区", label: "社区居民 / 城市居民" },
+    { group: "社会与社区", label: "行业从业者 / 特定职业群体" },
+    { group: "地球与未来", label: "环境 / 生态系统" },
+    { group: "地球与未来", label: "未来世代 / 还没出生的人" },
+  ];
+
+  const STEM_SKILLS = [
+    { group: "科学与调查", label: "科学调查 / 问卷 / 访谈" },
+    { group: "科学与调查", label: "文献检索 / 信息查找" },
+    { group: "技术与编程", label: "编程 / 自动化工具" },
+    { group: "技术与编程", label: "人工智能 / 数据工具" },
+    { group: "工程与设计", label: "系统设计 / 工程思维" },
+    { group: "工程与设计", label: "产品 / 服务设计" },
+    { group: "工程与设计", label: "实验与原型制作" },
+    { group: "数学与数据", label: "数据分析 / 统计" },
+    { group: "数学与数据", label: "建模 / 仿真 / 预测" },
+    { group: "综合与沟通", label: "可视化与信息表达" },
+    { group: "综合与沟通", label: "项目管理与协作" },
+  ];
+
+  const HEAD_EMOJIS = ["⭐","🏗️","🤝","🔭","📚","🎨","📋","🚀"];
+  const NECK_EMOJIS = ["🔔","🎀","💎","🧿","🏅","🔗","☯️","🌱","🛰️"];
+  const BODY_EMOJIS = ["⚙️","📊","🧪","🔍","💻","📡","🧬","☁️","🧠","🧱","🛰️"];
+
+  const screenStart = document.getElementById("screen-start");
+  const screenGame  = document.getElementById("screen-game");
+  const btnGameStart = document.getElementById("btnGameStart");
+
+  const cardRow = document.getElementById("cardRow");
+  const progressDots = document.getElementById("progressDots");
+  const resStep = document.getElementById("resStep");
+  const resDone = document.getElementById("resDone");
+  const hintStepText = document.getElementById("hintStepText");
+
+  const modal = document.getElementById("modal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalSub = document.getElementById("modalSub");
+  const modalTag = document.getElementById("modalTag");
+  const modalBody = document.getElementById("modalBody");
+  const modalFooter = document.getElementById("modalFooter");
+
+  function $(id){ return document.getElementById(id); }
+  function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+  function randomFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function renderCards(){
+  cardRow.innerHTML = "";
+  MISSIONS.forEach(m => {
+    const locked = m.id > state.currentStep;
+    const card = document.createElement("div");
+    card.className = "task-card";
+    card.dataset.id = m.id;
+    card.dataset.locked = locked ? "true" : "false";
+    card.dataset.done = state.done[m.id] ? "true" : "false";
+
+    card.title = m.purpose; // 鼠标悬停时显示卡牌的意义
+
+      card.innerHTML = `
+        <div class="task-lv">${m.lv}</div>
+        <div class="task-index">${m.id}</div>
+        <div class="task-illust"></div>
+        <div class="task-status">DONE</div>
+        <div class="task-label">
+          <div class="task-name">${m.name}</div>
+          <div class="task-desc">${m.desc}</div>
+        </div>
+      `;
+      card.addEventListener("click", () => onCardClick(m));
+      cardRow.appendChild(card);
+    });
+  }
+
+  function renderDots(){
+    progressDots.innerHTML = "";
+    MISSIONS.forEach(m => {
+      const dot = document.createElement("div");
+      dot.className = "dot" + (state.done[m.id] ? " active" : "");
+      progressDots.appendChild(dot);
+    });
+  }
+
+  function refreshHeader(){
+    resStep.textContent = `Step ${state.currentStep} / 5`;
+    const doneCount = Object.values(state.done).filter(Boolean).length;
+    resDone.textContent = `Done ${doneCount}`;
+    const cur = MISSIONS.find(m => m.id === state.currentStep);
+    if(cur){
+      hintStepText.textContent = `Current：card ${cur.id} · ${cur.name}`;
+
+    const stepMeanings = {
+      1: "👤 Who am I?—— Build your future identity, this little figure will accompany you to 2036 建立你的未来身份",
+      2: "🌊 How does the world change? —— Sense future trends, these Waves will influence your career 感知未来趋势",
+      3: "💭 What do I care about? —— Clarify inner motivation, values determine your choices 明确内在动力，价值观决定选择",
+      4: "🛠️ What i want to do?  —— Design concrete actions, light up the four parts of the figure 设计具体行动",
+      5: "📄 The future —— See your future self, generate a complete report 看见未来的自己"
+    };
+    const meaningBar = document.getElementById('currentStepMeaning');
+    if (meaningBar) {
+      meaningBar.textContent = stepMeanings[state.currentStep];
+    }
+
+    }
+  }
+
+  function onCardClick(mission){
+    if(mission.id > state.currentStep){
+      alert("please follow step 1-5 请先完成前面的卡牌哦，按 1 → 5 的顺序来。");
+      return;
+    }
+    openMission(mission);
+  }
+
+  function openMission(mission){
+
+  // ==== 添加这一步的意义提示 ====
+  const meaningMap = {
+    1: "🎯 Meaning of this step: Let you see your 2036 self with a specific identity. \n🎯 让你看见2036年的自己有一个具体的身份。",
+    2: "🎯 Meaning of this step: Let you perceive the changes that may happen in the next 10 years, each Wave will influence your career direction. \n🎯 让你感知未来10年可能发生的变化, 每个Wave都会影响你的职业方向。",
+    3: "🎯 Meaning of this step: Clarify what you truly care about. \n🎯 明确你内心真正在乎的东西。",
+    4: "🎯 Meaning of this step: Turn abstract trends into concrete actions. \n🎯 把抽象的趋势变成具体能做的事情。小人的头饰、脖子饰品、身体徽章都由你决定",
+    5: "🎯 Meaning of this step: Piece together the previous fragments into a complete story and see your future self. The report will connect your chosen major, Waves, values, and missions. \n🎯 把前面的碎片拼成一个完整的故事，看见未来的自己。报告里会把你选的专业、Wave、价值观、任务全部串起来。"
+  };
+
+    modalTitle.textContent = `Card ${mission.id} · ${mission.name}`;
+    modalSub.textContent = mission.desc;
+  const purposeDiv = document.createElement('div');
+  purposeDiv.style.cssText = 'margin-top:8px; font-size:0.9rem; color:#2563eb; font-weight:500;';
+  purposeDiv.textContent = mission.purpose;
+
+  // 新增：意义提示框
+  const meaningDiv = document.createElement('div');
+  meaningDiv.style.cssText = `
+    margin-top: 10px;
+    padding: 12px;
+    background: #e0f2fe;
+    border-left: 4px solid #0284c7;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #0c4a6e;
+    line-height: 1.5;
+  `;
+  meaningDiv.innerHTML = meaningMap[mission.id];
+
+  modalSub.innerHTML = '';
+  modalSub.appendChild(purposeDiv);
+  modalSub.appendChild(meaningDiv);
+
+    modalTag.textContent = mission.tag;
+
+    if(mission.id === 1){
+      renderStep1Role();
+    } else if(mission.id === 2){
+      renderStep2Draw();
+    } else if(mission.id === 3){
+      renderStep3Squad();
+    } else if(mission.id === 4){
+      state.step4Page = state.step4Page || "4.1";
+      renderStep4Page();
+    } else if(mission.id === 5){
+      renderStep5Report();
+    }
+    modal.style.display = "flex";
+  }
+
+  /******** Step1 角色 ********/
+  function renderStep1Role(){
+    const c = state.character;
+    const colorConf = STICK_COLORS[c.colorIndex];
+    const currentName = state.stickNames[c.colorIndex];
+
+// 在 renderStep1Role 函数中，找到 select 部分并替换
+modalBody.innerHTML = `
+      <div class="char-select-layout">
+        <div class="char-view">
+          <div class="char-title">Step 1 · SELECT YOUR STICKMAN</div>
+          <p class="text-xs text-muted" style="color:#6b7280;margin-bottom:0.15rem;">
+            Choose the color of the little figure you like, and you can also give it a name.
+          </p>
+          <div class="char-canvas-wrapper">
+            <div class="char-canvas">
+              <div class="stick-bg" id="stickBG" style="background:${colorConf.color};"></div>
+              <div class="stickman" id="stickmanFigure" style="color:${colorConf.color};">
+                <div class="stickman-circle"></div>
+                <div class="stickman-body"></div>
+                <div class="stickman-arm"></div>
+                <div class="stickman-leg-left"></div>
+                <div class="stickman-leg-right"></div>
+                <div class="stick-face"><span>•</span><span>•</span></div>
+                <div class="stick-accessory">⭐</div>
+              </div>
+            </div>
+          </div>
+          <div class="char-arrows">
+            <button class="arrow-btn" id="btnCharPrev">‹</button>
+            <div class="char-color-name" id="charColorName" title="Click to rename this little person点击可以给这个小人改名">
+              ${currentName}
+            </div>
+            <button class="arrow-btn" id="btnCharNext">›</button>
+          </div>
+        </div>
+
+        <div class="char-form">
+          <div style="font-size:0.82rem;font-weight:700;margin-bottom:0.2rem;">
+            Create a "professional character setting" for your character 「职业人物设定」
+          </div>
+
+          <div class="field">
+            <label for="fieldMajor">Your major/interest major 你的专业 / 感兴趣的专业</label>
+            <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+              <select id="fieldMajor" style="flex: 2;">
+                <option value="">-- Select or Custom 请选择或选择「自定义输入」 --</option>
+                ${MAJOR_OPTIONS.map(m => `<option value="${m}">${m}</option>`).join("")}
+                <option value="CUSTOM">✏️ 自定义输入 (Custom)</option>
+              </select>
+              <input type="text" id="fieldMajorCustom" style="flex: 1; display: ${c.major && !MAJOR_OPTIONS.includes(c.major) ? 'block' : 'none'};" placeholder="Please input here 请在这里自定义" value="${c.major && !MAJOR_OPTIONS.includes(c.major) ? c.major : ''}">
+            </div>
+            <small id="majorHelpText" style="display: ${c.major && !MAJOR_OPTIONS.includes(c.major) ? 'block' : 'none'}; color: #2563eb;">Current Custom 当前自定义: ${c.major && !MAJOR_OPTIONS.includes(c.major) ? c.major : ''}</small>
+          </div>
+
+          <div class="field">
+            <label for="fieldIntro"> Describing what you want to do with this major 一句话介绍你在未来用这个专业可能做什么</label>
+            <textarea id="fieldIntro" placeholder="In a future city laboratory, using data and sensors to design a more comfortable subway experience.
+你在一家未来城市实验室，用数据和传感器设计更舒服的地铁体验。"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="fieldIdentity">Your current identity 你现在的身份</label>
+            <textarea id="fieldIdentity" placeholder="Such as: A freshman / an Earth explorer taking a Gap Year.
+大一学生 / 正在 Gap Year 的地球探索者" style="resize: none; height: 80px;"></textarea>
+          </div>
+
+          <div id="step1Error" class="error-text" style="display:none;"></div>
+        </div>
+      </div>
+    `;
+    /* 注意：这里已用反引号 `...` 正确闭合，不再有多余的 " 号 */
+
+    const majorEl = document.getElementById("fieldMajor");
+    if (c.major) {
+      if (MAJOR_OPTIONS.includes(c.major)) {
+        majorEl.value = c.major;
+      } else {
+        majorEl.value = "";
+        majorEl.setAttribute("data-custom-major", c.major);
+        majorEl.options[0].textContent = c.major + "（Already set已自定义）";
+      }
+    }
+    document.getElementById("fieldIntro").value = c.intro || "";
+    document.getElementById("fieldIdentity").value = c.identity || "";
+
+    document.getElementById("btnCharPrev").onclick = () => {
+      c.colorIndex = (c.colorIndex - 1 + STICK_COLORS.length) % STICK_COLORS.length;
+      updateStickmanView();
+    };
+    document.getElementById("btnCharNext").onclick = () => {
+      c.colorIndex = (c.colorIndex + 1) % STICK_COLORS.length;
+      updateStickmanView();
+    };
+
+    document.getElementById("charColorName").onclick = () => {
+      const idx = c.colorIndex;
+      const oldName = state.stickNames[idx] || STICK_COLORS[idx].defaultName;
+      const newName = prompt("Rename the man 给这个小人起个名字（例如：红色火柴人·数据法师）：", oldName);
+      if (newName && newName.trim()) {
+        state.stickNames[idx] = newName.trim();
+        document.getElementById("charColorName").textContent = state.stickNames[idx];
+      }
+    };
+
+    // 添加专业选择的自定义输入逻辑
+    const majorSelect = document.getElementById("fieldMajor");
+    const majorCustom = document.getElementById("fieldMajorCustom");
+    const majorHelpText = document.getElementById("majorHelpText");
+
+    // 处理专业选择变化
+    majorSelect.addEventListener("change", function() {
+      if (this.value === "CUSTOM") {
+        majorCustom.style.display = "block";
+        majorHelpText.style.display = "none";
+        majorCustom.focus();
+        // 清空 select 的自定义标记
+        this.removeAttribute("data-custom-major");
+        // 当切换到自定义模式时，清除之前的选择值
+        state.character.major = "";
+      } else {
+        majorCustom.style.display = "none";
+        majorHelpText.style.display = "none";
+        if (this.value) {
+          // 如果选择了预定义选项，直接更新 state 中的专业
+          state.character.major = this.value;
+          // 清除自定义输入的值
+          majorCustom.value = "";
+        }
+      }
+    });
+
+    // 处理自定义输入 - 实时更新 state
+    majorCustom.addEventListener("input", function() {
+      if (this.value.trim()) {
+        // 当自定义输入有值时，直接更新 state.character.major
+        state.character.major = this.value.trim();
+        majorHelpText.style.display = "block";
+        majorHelpText.textContent = `当前自定义专业: ${this.value.trim()}`;
+      } else {
+        // 如果自定义输入为空，清空专业
+        state.character.major = "";
+        majorHelpText.style.display = "none";
+      }
+    });
+
+    // 如果已经有自定义专业，设置正确的显示状态
+    if (c.major && !MAJOR_OPTIONS.includes(c.major)) {
+      majorSelect.value = "CUSTOM";
+      majorCustom.style.display = "block";
+      majorCustom.value = c.major;
+      majorHelpText.style.display = "block";
+      majorHelpText.textContent = `当前自定义专业: ${c.major}`;
+    } else if (c.major) {
+      majorSelect.value = c.major;
+    }
+
+    modalFooter.innerHTML = `
+      <button class="btn-small secondary" id="btnCloseModal">Back to main page</button>
+      <button class="btn-small" id="btnSaveCharacter">Save the result ✓</button>
+    `;
+    document.getElementById("btnCloseModal").onclick = () => (modal.style.display = "none");
+    document.getElementById("btnSaveCharacter").onclick = saveCharacterFromForm;
+
+    function updateStickmanView(){
+      const cfg = STICK_COLORS[c.colorIndex];
+      const name = state.stickNames[c.colorIndex] || cfg.defaultName;
+      document.getElementById("stickmanFigure").style.color = cfg.color;
+      document.getElementById("stickBG").style.background = cfg.color;
+      document.getElementById("charColorName").textContent = name;
+    }
+  }
+
+function saveCharacterFromForm(){
+    const majorEl = $("fieldMajor");
+    const majorCustom = $("fieldMajorCustom");
+    const introEl = $("fieldIntro");
+    const idEl = $("fieldIdentity");
+    const errEl = $("step1Error");
+
+    let major = "";
+    
+    // 判断是选择了预定义选项还是自定义输入
+    if (majorEl.value === "CUSTOM") {
+      major = majorCustom.value.trim();
+      if (!major) {
+        errEl.textContent = "请在自定义输入框中填写你的专业。\nPlease enter your major in the custom field.";
+        errEl.style.display = "block";
+        return;
+      }
+    } else {
+      major = majorEl.value.trim();
+    }
+
+    // 如果上面没获取到，尝试从 state 中获取（可能通过实时输入已更新）
+    if (!major && state.character.major) {
+      major = state.character.major;
+    }
+
+    const intro = introEl.value.trim();
+    const identity = idEl.value.trim();
+
+    if(!major){
+      errEl.textContent = "Please select or enter a career/major name first. 请先选择或输入一个专业";
+      errEl.style.display = "block";
+      return;
+    }
+    if(!intro){
+      errEl.textContent = "Please write a sentence Describing what you want to do with this major. 一句话介绍你在未来用这个专业可能做什么";
+      errEl.style.display = "block";
+      return;
+    }
+    if(!identity){
+      errEl.textContent = "Please write down your current identity 请写下你现在的身份（例如：大一学生 / 在职老师等）。";
+      errEl.style.display = "block";
+      return;
+    }
+
+    errEl.style.display = "none";
+
+    // 保存专业（可能已经通过实时输入更新了，但这里再确保一次）
+    state.character.major = major;
+    state.character.intro = intro;
+    state.character.identity = identity;
+
+    state.done[1] = true;
+    if(state.currentStep === 1) state.currentStep = 2;
+
+    modal.style.display = "none";
+    renderCards();
+    renderDots();
+    refreshHeader();
+  }
+
+  function getAllSelectedWaves(){ return Object.values(state.drawnWavesByDomain).flat(); }
+
+  function showDrawStatusInto(elId){
+    const waves = getAllSelectedWaves();
+    const el = $(elId);
+    if(!waves.length){
+      el.textContent = "";
+      return;
+    }
+    const total = waves.length;
+    const techCount = waves.filter(w => w.domain === "Technology").length;
+    el.innerHTML =
+      `A total of <strong>${total}</strong> waves have been drawn so far, among which  <strong>Technology: ${techCount}</strong> waves.` +
+      `<br/>Rule: Total number = 7, and Technology =2 2;One for each Domain except Technology.`;
+  }
+
+  function checkDrawRules(){
+    const wavesByDomain = state.drawnWavesByDomain;
+    const all = getAllSelectedWaves();
+    const total = all.length;
+    const techCount = all.filter(w => w.domain === "Technology").length;
+
+    if (total < 7) return { ok: false, msg: "Please draw 7 Wave cards. 请抽取 7 张 Wave 卡。" };
+    if (techCount < 2) return { ok: false, msg: "At least two waves in the Technology dimension.请保证 Technology 维度至少有 2 张 Wave。" };
+    for (const d of DOMAINS) {
+      if (d.id !== "Technology" && (wavesByDomain[d.id]?.length || 0) > 1) {
+        return { ok: false, msg: `${d.label} dimension currently has > 1 card. Please delete the extra cards.` };
+      }
+    }
+    return { ok: true, msg: "" };
+  }
+
+  /******** Step2 抽卡 ********/
+  function renderStep2Draw(){
+    modalBody.innerHTML = `
+      <div>
+        <div class="badge">Step 2 · Draw Future Waves</div>
+        <p class="text-xs text-muted" style="margin-top:0.2rem;">
+          Please extract the events that might change your life from six dimensions.请从六个维度抽取可能会改变你生活的事件。<br/>
+          Rules：Total = 7 ，Technology = 2 ，Others Domain = 1
+        </p>
+        <div class="board-wrapper" id="boardContainer"></div>
+
+        <div style="margin-top:0.6rem;">
+          <div style="font-size:0.8rem;font-weight:600;">The current Wave card that has been drawn 当前已抽到的 Wave 卡</div>
+          <div class="text-xs text-muted">
+            Here, only all the Wave cards you have already "acquired" are displayed (with detailed descriptions). 这里只展示你已经「收入囊中」的所有 Wave 卡（详细描述）。
+          </div>
+          <div id="selectedWavesList" class="selected-waves-list" style="margin-top:0.35rem;"></div>
+          <div id="drawStatus" class="text-xs text-muted" style="margin-top:0.35rem;"></div>
+          <div id="drawError" class="error-text" style="display:none;"></div>
+        </div>
+      </div>
+    `;
+
+    modalFooter.innerHTML = `
+      <button class="btn-small secondary" id="btnCloseModal">Back to main page</button>
+      <button class="btn-small" id="btnMarkStep2">Save the result ✓</button>
+    `;
+    $("btnCloseModal").onclick = () => (modal.style.display = "none");
+    $("btnMarkStep2").onclick = () => {
+      const r = checkDrawRules();
+      if(!r.ok){
+        $("drawError").textContent = r.msg;
+        $("drawError").style.display = "block";
+        return;
+      }
+      $("drawError").style.display = "none";
+
+      state.done[2] = true;
+      if(state.currentStep === 2) state.currentStep = 3;
+      modal.style.display = "none";
+      renderCards();
+      renderDots();
+      refreshHeader();
+    };
+
+    initBoard();
+  }
+
+  function initBoard(){
+    const container = $("boardContainer");
+    container.innerHTML = "";
+
+    DOMAINS.forEach(d => {
+      const card = document.createElement("div");
+      card.className = "board-card " + d.posClass;
+      card.dataset.domain = d.id;
+
+      const has = state.drawnWavesByDomain[d.id]?.[0];
+      card.innerHTML = `
+        <div class="board-card-domain">${d.label}</div>
+        <div class="board-card-title" data-role="title">
+          ${has ? has.title : "Card draw"}
+        </div>
+        <div class="board-card-footer">
+          <button class="btn-small secondary" style="font-size:0.65rem;padding:0.08rem 0.4rem;display:${has?"inline-flex":"none"}" data-role="delete">Delete</button>
+        </div>
+      `;
+
+      card.addEventListener("click", (e) => {
+        const target = e.target;
+        if (target && target.getAttribute("data-role") === "delete") {
+          e.stopPropagation();
+          handleDeleteFromDomain(d.id, card);
+          return;
+        }
+        handleDrawOnDomain(d.id, card);
+      });
+      container.appendChild(card);
+    });
+
+    renderSelectedWavesSummary();
+    const r = checkDrawRules();
+    if(!r.ok){
+      $("drawError").textContent = r.msg;
+      $("drawError").style.display = "block";
+    }else{
+      $("drawError").style.display = "none";
+    }
+  }
+
+  function handleDrawOnDomain(domainId, cardEl){
+    const isTech = domainId === "Technology";
+
+    if (!isTech && state.drawnWavesByDomain[domainId]?.length) {
+      alert("There is already a Wave here. If you want to change it, please click [Delete] first. 该扇叶已经有一张 Wave 了，如果想换，请先点击「Delete」。");
+      return;
+    }
+
+    const wavesHere = state.drawnWavesByDomain[domainId] || [];
+    if (isTech && wavesHere.length >= 2) {
+      alert("The Technology fan blade can retain a maximum of 2 Waves.If you want to replace it, please delete one first. 这个扇叶最多保留 2 张 Wave；如想更换，请先删除一张。");
+      return;
+    }
+
+    const candidates = WAVE_POOL.filter(w => w.domain === domainId);
+    if (!candidates.length) return;
+
+    const existingIds = getAllSelectedWaves().map(w => w.id);
+    const shuffled = shuffle(candidates);
+    let chosen = shuffled.find(w => !existingIds.includes(w.id));
+    if (!chosen) chosen = shuffled[0];
+
+    if (!state.drawnWavesByDomain[domainId]) {
+      state.drawnWavesByDomain[domainId] = [];
+    }
+    state.drawnWavesByDomain[domainId].push(chosen);
+
+    const titleEl = cardEl.querySelector("[data-role='title']");
+    const deleteBtn = cardEl.querySelector("[data-role='delete']");
+    titleEl.textContent = chosen.title;
+    deleteBtn.style.display = "inline-flex";
+
+    renderSelectedWavesSummary();
+    showDrawStatusInto("drawStatus");
+    const r = checkDrawRules();
+    if(!r.ok){
+      $("drawError").textContent = r.msg;
+      $("drawError").style.display = "block";
+    }else{
+      $("drawError").style.display = "none";
+    }
+  }
+
+  function handleDeleteFromDomain(domainId, cardEl){
+    const waves = state.drawnWavesByDomain[domainId];
+    if (!waves || !waves.length) return;
+
+    const ok = window.confirm("Are you sure you want to delete and re-draw? 确定要删除并重新抽吗？");
+    if (!ok) return;
+
+    delete state.drawnWavesByDomain[domainId];
+
+    const titleEl = cardEl.querySelector("[data-role='title']");
+    const deleteBtn = cardEl.querySelector("[data-role='delete']");
+    titleEl.textContent = "Click to draw";
+    deleteBtn.style.display = "none";
+
+    renderSelectedWavesSummary();
+    showDrawStatusInto("drawStatus");
+    const r = checkDrawRules();
+    if(!r.ok){
+      $("drawError").textContent = r.msg;
+      $("drawError").style.display = "block";
+    }else{
+      $("drawError").style.display = "none";
+    }
+  }
+
+  function renderSelectedWavesSummary(){
+    const container = $("selectedWavesList");
+    const waves = getAllSelectedWaves();
+    container.innerHTML = "";
+
+    if(!waves.length){
+      container.innerHTML =
+        '<div class="text-xs text-muted">There is no Wave yet, Go and draw a card! 暂时还没有 Wave，去抽卡吧！</div>';
+      $("drawStatus").textContent = "";
+      return;
+    }
+
+    waves.forEach(w=>{
+      const div=document.createElement("div");
+      div.className="wave-chip";
+      div.innerHTML=`
+        <div style="font-weight:600;font-size:0.82rem;">${w.title}</div>
+        <div class="text-xs text-muted">${w.domain} • Stage: ${w.stage}</div>
+        <div class="text-xs" style="margin-top:0.15rem;">${w.description}</div>
+      `;
+      container.appendChild(div);
+    });
+
+    showDrawStatusInto("drawStatus");
+  }
+
+  /******** Step3：主力 Waves + 价值观 + 情景 ********/
+  function totalValuePoints(){ return Object.values(state.valuePoints).reduce((a,b)=>a+b,0); }
+
+  function renderStep3Squad(){
+    const waves = getAllSelectedWaves();
+    if(!waves.length){
+      modalBody.innerHTML = `<p>You haven't drawn any waves yet. Please complete step 2 first.你还没有抽到任何 Wave，请先完成step 2。</p>`;
+      modalFooter.innerHTML = `<button class="btn-small secondary" id="btnCloseModal">Back to main page</button>`;
+      $("btnCloseModal").onclick = () => (modal.style.display="none");
+      return;
+    }
+
+    modalBody.innerHTML = `
+      <div>
+        <div class="badge">Step 3 · Main Waves & Values</div>
+        <p class="text-xs text-muted" style="margin-top:0.2rem;">
+          This stage requires identifying "events that I feel are related to my major" and "what I care about"这一关要确定「觉得和专业相关的事件」和「我在乎什么」<br/>
+          Select 2 to 3 main Waves and add some points to the values. 选 2–3 张主力 Wave，再为价值观加点。
+        </p>
+
+        <section style="margin-top:0.4rem;">
+          <div style="font-size:0.8rem;font-weight:600;">3.1 Select the main Waves most relevant to your major (2-3 pieces)选择和专业最相关的主力 Waves（2–3 张）</div>
+          <div id="keyWavesContainer" class="selected-waves-list" style="margin-top:0.25rem;"></div>
+          <div id="selectError" class="error-text" style="display:none;"></div>
+        </section>
+
+        <section style="margin-top:0.5rem;">
+          <div style="font-size:0.8rem;font-weight:600;">3.2 Value attribute bonus points 价值观属性加点，一共 6 点</div>
+          <p class="text-xs text-muted" style="margin-top:0.15rem;">
+            Imagine yourself in 2036. What is "more important"? Adding more is your preference.想象 2036 年的你，什么「更重要」？加点多的就是你的偏好。
+          </p>
+          <div id="valuesContainer" style="margin-top:0.2rem;"></div>
+          <div id="valuePointsStatus" class="text-xs text-muted" style="margin-top:0.15rem;"></div>
+        </section>
+
+        <section style="margin-top:0.5rem;">
+          <div style="font-size:0.8rem;font-weight:600;">3.3 A small event: See how you choose 一个小事件：看看你怎么选</div>
+          <div id="scenarioBox" class="wave-impact-card" style="margin-top:0.2rem;"></div>
+        </section>
+      </div>
+    `;
+
+    modalFooter.innerHTML = `
+      <button class="btn-small secondary" id="btnCloseModal">Back to main page</button>
+      <button class="btn-small" id="btnSaveStep3">Save the result ✓</button>
+    `;
+    $("btnCloseModal").onclick = () => (modal.style.display="none");
+    $("btnSaveStep3").onclick = () => {
+      if(!validateSelectStep3()) return;
+      state.done[3] = true;
+      if(state.currentStep === 3) state.currentStep = 4;
+      modal.style.display = "none";
+      renderCards();
+      renderDots();
+      refreshHeader();
+    };
+
+    if(!state.keyWaveIds.length && waves.length>=2){
+      state.keyWaveIds = waves.slice(0,2).map(w => w.id);
+    }
+    renderKeyWaves();
+    renderValuePointsUI();
+    initScenarioBox();
+  }
+
+  function renderKeyWaves(){
+    const c = $("keyWavesContainer");
+    c.innerHTML = "";
+    const waves = getAllSelectedWaves();
+    waves.forEach(w=>{
+      const checked = state.keyWaveIds.includes(w.id);
+      const div = document.createElement("div");
+      div.className = "wave-chip";
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-weight:600;font-size:0.82rem;">${w.title}</div>
+          <label class="text-xs" style="display:flex;align-items:center;gap:0.2rem;">
+            <input type="checkbox" data-wave-id="${w.id}" ${checked?"checked":""} /> Relate
+          </label>
+        </div>
+        <div class="text-xs text-muted">${w.domain} • Stage: ${w.stage}</div>
+        <p class="text-xs text-muted" style="margin-top:0.2rem;">${DOMAIN_HINT[w.domain]||""}</p>
+        <div class="text-xs" style="margin-top:0.15rem;">${w.description}</div>
+      `;
+      c.appendChild(div);
+    });
+
+    c.querySelectorAll("input[type='checkbox']").forEach(cb=>{
+      cb.onchange=e=>{
+        const id=e.target.getAttribute("data-wave-id");
+        if(e.target.checked){
+          if(state.keyWaveIds.length>=3){
+            e.target.checked=false;
+            $("selectError").textContent="最多 3 张主力 Wave。";
+            $("selectError").style.display="block";
+            return;
+          }
+          state.keyWaveIds.push(id);
+        }else{
+          state.keyWaveIds=state.keyWaveIds.filter(x=>x!==id);
+        }
+        validateSelectStep3();
+      };
+    });
+  }
+
+  function renderValuePointsUI(){
+    const c=$("valuesContainer");
+    c.innerHTML="";
+    VALUE_ATTRS.forEach(attr=>{
+      const cur=state.valuePoints[attr.id]||0;
+      const span=document.createElement("span");
+      span.className="value-tag"+(cur>0?" selected":"");
+      span.textContent=`${attr.label} · ${cur} 点`;
+      span.title="示例："+attr.examples.join(" / ");
+      span.onclick=()=>{
+        let now=state.valuePoints[attr.id]||0;
+        let next=(now+1)%4;
+        const others=totalValuePoints()-now;
+        if(others+next>VALUE_POINTS_TOTAL){
+          const remain=VALUE_POINTS_TOTAL-others;
+          next=Math.max(0,Math.min(3,remain));
+        }
+        state.valuePoints[attr.id]=next;
+        renderValuePointsUI();
+      };
+      c.appendChild(span);
+    });
+    const used=totalValuePoints();
+    $("valuePointsStatus").textContent=`Assigned attribute points 已分配属性点：${used} / ${VALUE_POINTS_TOTAL} 点。`;
+  }
+
+  function initScenarioBox(){
+    if(!state.scenario){
+      state.scenario = randomFrom(SCENARIO_POOL);
+      state.scenarioChoice = null;
+    }
+    const s = state.scenario;
+    const box = $("scenarioBox");
+    box.innerHTML = "";
+    const title=document.createElement("div");
+    title.style.fontWeight="600";
+    title.style.marginBottom="0.3rem";
+    title.textContent = "Ask："+s.text;
+    box.appendChild(title);
+    s.options.forEach(opt=>{
+      const btn=document.createElement("button");
+      btn.className="btn-small secondary";
+      btn.style.fontSize="0.7rem";
+      btn.textContent=opt.id+". "+opt.label;
+      if(state.scenarioChoice === opt.id){
+        btn.classList.remove("secondary");
+        btn.style.background="#16a34a";
+        btn.style.color="#ecfdf5";
+      }
+      btn.onclick=()=>{
+        state.scenarioChoice = opt.id;
+        initScenarioBox();
+      };
+      box.appendChild(btn);
+      box.appendChild(document.createTextNode(" "));
+    });
+    const tip=document.createElement("p");
+    tip.className="text-xs text-muted";
+    tip.style.marginTop="0.25rem";
+    tip.textContent="（There is no right or wrong, it's just a record of your preferences. 没有对错，只是记录你的偏好.）";
+    box.appendChild(tip);
+  }
+
+  function validateSelectStep3(){
+    const keyCount=state.keyWaveIds.length;
+    const used=totalValuePoints();
+    if(keyCount<2){
+      $("selectError").textContent="Please select at least two Waves. 请至少选择 2 张 Wave。";
+      $("selectError").style.display="block";
+      return false;
+    }
+    if(keyCount>3){
+      $("selectError").textContent="A maximum of 3 Waves can be selected. 最多选择 3 张 Wave。";
+      $("selectError").style.display="block";
+      return false;
+    }
+    if(used<VALUE_POINTS_TOTAL){
+      $("selectError").textContent=`Please use up all 6 attribute points 请用完 6 点属性点（当前 ${used} 点）。`;
+      $("selectError").style.display="block";
+      return false;
+    }
+    $("selectError").style.display="none";
+    return true;
+  }
+
+  /******** Step4：4.1 / 4.2 / 4.3 ********/
+
+  function ensureWaveTask(waveId){
+    if(!state.waveTasks[waveId]){
+      state.waveTasks[waveId] = {
+        missionType: "",
+        targetGroup: "",
+        stemSkills: [],
+        oneLiner: "",
+        skinId: SKIN_PRESETS[0].id,
+      };
+    }
+    return state.waveTasks[waveId];
+  }
+
+// 根据当前 Wave 任务的 ①任务类型 + ②影响对象 + ③STEM 能力，生成一句默认任务句子
+  function buildDefaultOneLiner(wave, task){
+    const type = task.missionType || "Do something meaningful 做一件有意义的事";
+    const target = task.targetGroup || "Some people 一些人";
+    const skills = (task.stemSkills && task.stemSkills.length)
+      ? task.stemSkills.join("、")
+      : "One's own STEM capabilities 自己的 STEM 能力";
+
+    // 可以简单按一个固定模版来拼
+    return `
+   我会带着一群「${target}」，利用「${skills}」等 STEM 能力，在这张「${wave.title}」Wave 带来的世界里，做一件「${type}」相关的任务。`;
+  }
+
+  function isWaveTaskCompleted(task){
+    return task &&
+      task.missionType &&
+      task.targetGroup &&
+      task.stemSkills && task.stemSkills.length>0 &&
+      task.oneLiner.trim().length>0;
+  }
+
+  function computeWaveTasksProgress(){
+    const waves = getAllSelectedWaves();
+    if(!waves.length) return { done:0, total:0 };
+    let done = 0;
+    waves.forEach(w => {
+      const task = state.waveTasks[w.id];
+      if(isWaveTaskCompleted(task)) done++;
+    });
+    return { done, total: waves.length };
+  }
+
+  function renderStep4Page() {
+    const waves = getAllSelectedWaves();
+    if (!waves.length) {
+      modalBody.innerHTML = `<p>There is no Wave yet. Please complete step 2 first. 还没有 Wave，请先完成 step 2。</p>`;
+      modalFooter.innerHTML = `<button class="btn-small secondary" id="btnCloseModal">Back to main page</button>`;
+      $("btnCloseModal").onclick = () => (modal.style.display="none");
+      return;
+    }
+    if (state.step4CurrentIndex >= waves.length) {
+      state.step4CurrentIndex = waves.length - 1;
+    }
+
+    if (state.step4Page === "4.1") {
+      renderStep41();
+    } else if (state.step4Page === "4.2") {
+      renderStep42();
+    } else {
+      renderStep43();
+    }
+  }
+
+  /* 4.1 简化 ST E M 句型 */
+  function renderStep41() {
+    modalTitle.textContent = "Card 4 · Step 4.1 STEM Underlying Association";
+    modalTag.textContent = "Step 4.1";
+
+    const existing = state.stemBaseText || "";
+    const extraPrefill = existing;
+
+    modalBody.innerHTML = `
+      <div>
+        <div class="badge">Step 4.1 · STEM Underlying Associations </div>
+        <p class="text-xs text-muted" style="margin-top:0.2rem;">
+          Objective: Translate "My Major" into a set of S/T/E/M toolboxes that can be used for tasks.目标：用 3 句话，把「我的专业」翻译成一套可以用来做任务的 S / T / E / M 工具箱。<br/>
+          Be colloquial and brief 口语化，简短即可
+        </p>
+
+        <div style="margin-top:0.4rem;">
+          <div class="field">
+            <label for="stemSentenceS">Sentence 1 · S (Science/Investigation)</label>
+            <input id="stemSentenceS" placeholder="Such as: In this major, I will use interviews/questionnaires/experiments to figure out a phenomenon.
+            例如：在我的专业里，我会用访谈 / 问卷 / 实验去弄清楚一个现象。">
+          </div>
+          <div class="field">
+            <label for="stemSentenceT">Sentence 2 · T (Technology/Tool)</label>
+            <input id="stemSentenceT" placeholder="Such as: The technology/software/instrument I use most frequently is...
+            例如：我最常用的技术 / 软件 / 仪器是……">
+          </div>
+          <div class="field">
+            <label for="stemSentenceEM">Sentence 3 · E + M (Design/System + Data Thinking) </label>
+            <input id="stemSentenceEM" placeholder="Such as: How would I design the system/service and use data to judge the effect?
+            例如：我会用什么方式设计系统 / 服务，并用数据来判断效果。">
+          </div>
+
+          <div class="field">
+            <label for="fieldStemExtra">If you want to write more, you can add it here (optional) 可以在这里补充</label>
+            <textarea id="fieldStemExtra" style="min-height:70px;"></textarea>
+            <small>You can expand the key words in the above three sentences by more sentences 你可以把上面 3 句里的关键词，再展开 1–2 句</small>
+          </div>
+
+<!-- Whole-person competencies -->
+<div style="margin-top:1rem; padding-top:0.5rem; border-top:1px solid #e5e7eb;">
+  <div style="font-size:0.85rem; font-weight:600; margin-bottom:0.3rem;">🧠 What other soft skills are needed? 还需要哪些软能力？(<=3)</div>
+  <div style="display:flex; flex-wrap:wrap; gap:0.4rem;" id="wpContainer">
+    ${['Empathy共情', 'Cooperation协作', 'Creativity创造力', 'Critical thinking批判思维', 'Ethical thinking伦理思考', 'Leadership领导力', 'Resilience韧性'].map(wp => `
+      <span class="value-tag ${state.wpSelected?.includes(wp) ? 'selected' : ''}" 
+            onclick="toggleWPSimple('${wp}')">${wp}</span>
+    `).join('')}
+  </div>
+</div>
+
+        </div>
+      </div>
+    `;
+
+    $("fieldStemExtra").value = extraPrefill;
+    $("stemSentenceS").value = "";
+    $("stemSentenceT").value = "";
+    $("stemSentenceEM").value = "";
+
+    modalFooter.innerHTML = `
+      <button class="btn-small secondary" id="btnBackCards">Back to main page</button>
+      <button class="btn-small secondary" id="btnStemAIHintNew">Generate a question template for AI 生成AI提问模板</button>
+      <button class="btn-small" id="btnGo42">Next step: 4.2 Professional Tasks→ </button>
+    `;
+    $("btnBackCards").onclick = () => (modal.style.display = "none");
+    $("btnStemAIHintNew").onclick = openStemPromptModal;
+    $("btnGo42").onclick = () => {
+      const s1 = $("stemSentenceS").value.trim();
+      const s2 = $("stemSentenceT").value.trim();
+      const s3 = $("stemSentenceEM").value.trim();
+      if (!s1 || !s2 || !s3) {
+        alert("至少把上面简单写一写，再进入 4.2 喔 At least write it briefly above and then move on to 4.2.");
+        return;
+      }
+      const extra = $("fieldStemExtra").value.trim();
+      state.stemBaseText =
+        `S：${s1}\nT：${s2}\nE+M：${s3}` + (extra ? `\n\nSupplementary note：\n${extra}` : "");
+      state.step4Page = "4.2";
+      renderStep4Page();
+    };
+  }
+
+window.toggleWPSimple = function(wp) {
+  if (!state.wpSelected) state.wpSelected = [];
+  const idx = state.wpSelected.indexOf(wp);
+  if (idx > -1) {
+    state.wpSelected.splice(idx, 1);
+  } else {
+    if (state.wpSelected.length >= 3) {
+      alert('Choose a maximum of 3 最多选3个');
+      return;
+    }
+    state.wpSelected.push(wp);
+  }
+  // 刷新样式
+  const tags = document.querySelectorAll('#wpContainer .value-tag');
+  tags.forEach(tag => {
+    if (state.wpSelected.includes(tag.textContent)) {
+      tag.classList.add('selected');
+    } else {
+      tag.classList.remove('selected');
+    }
+  });
+};
+
+  /* 4.2：舞台 + 四个圆 + 右侧面板 */
+  function renderStep42(){
+      const showGuide = !localStorage.getItem('step4GuideShown');
+  
+  if (showGuide) {
+    setTimeout(() => {
+      showStep4Guide();
+      localStorage.setItem('step4GuideShown', 'true');
+    }, 500);
+  }
+    modalTitle.textContent = "Card 4 · Step 4.2 Professional Tasks + Costume Stage";
+    modalTag.textContent = "Step 4.2";
+
+    const waves = getAllSelectedWaves();
+    const idx = state.step4CurrentIndex || 0;
+    const wave = waves[idx];
+    const task = ensureWaveTask(wave.id);
+    const { done, total } = computeWaveTasksProgress();
+    const curDone = isWaveTaskCompleted(task);
+
+    modalBody.innerHTML = `
+      <div class="step4-shell">
+        <div class="step4-top-guide">
+          <div class="step4-top-left">
+            <div class="step4-title-main">Step 4.2 · Write a "Task Card" for each Wave </div>
+            <div class="step4-title-sub">
+              A little figure stands in the middle of the stage, surrounded by four task parts 小人站在舞台中间，周围 是 4 个任务 part
+            </div>
+          </div>
+          <div class="step4-pill-progress">
+            <span class="step4-pill-dot"></span>
+            <span class="step4-pill-count">Wave ${idx+1} / ${waves.length}</span>
+            <span class="step4-pill-check">current Wave：${curDone?"completed 4 / 4":"To be completed"} · Whole ${done}/${total}</span>
+          </div>
+        </div>
+        <div id="progressHintContainer" style="margin-bottom: 10px;"></div>
+        <div class="step42-layout" id="step42Layout"></div>
+
+      <div class="orbit-bottom-bar">
+        <div>
+            <span class="text-pill">当前 Wave：<strong>${wave.title}</strong></span>
+            <span class="text-pill" style="margin-left:0.3rem;">${wave.domain} · Stage: ${wave.stage}</span>
+      </div>
+      <div style="display:flex;gap:0.4rem;align-items:center;">
+            <button class="btn-small secondary" id="btnBack41">← Previous step: 4.1 STEM Underlying Associations</button>
+            <button class="btn-small secondary" id="btnPrevWave">Previous Wave</button>
+            <button class="btn-ghost-dark ${curDone ? "" : "disabled"}" id="btnNextWaveDecor">
+              Move on to the next Wave → 进入下一张 Wave →
+            </button>
+        </div>
+      </div>
+    </div>
+    `;
+
+  // ★★ 新增：4.2 专用的 modalFooter，把 4.1 的按钮整个覆盖掉
+  modalFooter.innerHTML = `
+    <button class="btn-small secondary" id="btnBackCards">Back to main page</button>
+
+  `;
+
+  // 绑定 footer 上两个按钮
+  $("btnBackCards").onclick = () => (modal.style.display = "none");
+  $("btnBack41").onclick = () => {
+    state.step4Page = "4.1";
+    renderStep4Page();
+  };
+
+  const layout = $("step42Layout");
+  renderStageOrbit(layout, wave, task, waves.length);
+  renderRightPanel(layout, wave, task);
+
+  // 在这里添加进度提示的生成代码
+  setTimeout(() => {
+    const hintContainer = document.getElementById('progressHintContainer');
+    if (hintContainer) {
+      const progress = computeWaveTasksProgress();
+      const idx = state.step4CurrentIndex || 0;
+      const waves = getAllSelectedWaves();
+      
+      hintContainer.innerHTML = `
+        <div style="
+          background: rgba(255,255,255,0.1);
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-size: 0.8rem;
+          border-left: 3px solid #22c55e;
+          margin-bottom: 10px;
+        ">
+          ${progress.done < progress.total 
+            ? `📍 Current progress: complete the events完成卡牌`
+            : `✅ Congratulations! All Wave task cards have been completed!恭喜！所有Wave任务卡都已完成！<br>
+               👉 When all are done, click "OK" to go to Step 4.3 全部完成后点「确定」前往Step 4.3`
+          }
+        </div>
+      `;
+    }
+  }, 0);
+
+
+    $("btnBack41").onclick = () => {
+       state.step4Page = "4.1";
+       renderStep4Page();
+    };
+
+$("btnPrevWave").onclick = () => {
+  if (state.step4CurrentIndex > 0) {
+    state.step4CurrentIndex--;
+    state.step42ActivePanel = "type";   // ★ 切换 Wave 时回到 ①
+    renderStep42();
+  }
+};
+
+const btnNextDecor = $("btnNextWaveDecor");
+    btnNextDecor.onclick = () => {
+  if (!curDone) {
+    alert("The four dots of this Wave haven't all been lit up yet. Please complete the task Settings first. 本张 Wave 的 4 个圆点还没全部点亮，先把任务设定补完喔。");
+    return;
+  }
+
+  if (state.step4CurrentIndex < waves.length - 1) {
+    state.step4CurrentIndex++;
+    state.step42ActivePanel = "type";   // ★ 切到下一张 Wave，同样回到 ①
+    renderStep42();
+    return;
+  }
+
+      // 2）走到这里，说明已经是最后一张 Wave
+      //    再检查一下：所有 Wave 是否都已经完成 4 个 part
+      const progress = computeWaveTasksProgress();
+      if (progress.done < progress.total) {
+        alert(`你已经走到最后一张 Wave 了，但还有 ${progress.total - progress.done} 张 Wave 的任务卡没完成，请把所有 Wave 的 4 个圆都点亮喔。`);
+        return;
+      }
+
+      // 3）所有 Wave 都完成：弹出恭喜提示，并切到 4.3
+      const ok = window.confirm("Congratulations on completing all the combinations. We are going to the new stage (Step 4.3). Click ‘OK’ to go to 4.3, then click ‘Cancel’ to stay on the current stage and see again.恭喜你完成全部搭配，我们将前往新的舞台（Step 4.3）。\n\n点击「确定」前往 4.3，点击「取消」留在当前舞台再看看。");
+      if (ok) {
+        state.step4Page = "4.3";  // 下一次再进卡牌 4 也是直接落在 4.3
+        renderStep4Page();        // 直接渲染 Step 4.3
+      }
+    };
+  }
+
+  function showStep4Guide() {
+  const guideModal = document.createElement('div');
+  guideModal.className = 'modal-backdrop';
+  guideModal.style.display = 'flex';
+  guideModal.id = 'step4Guide';
+  
+  guideModal.innerHTML = `
+    <div class="modal fade-in" style="max-width: 500px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🎯 Step 4 Rules </div>
+          <div style="font-size:0.78rem;color:#6b7280;">Master the rules in 1 min</div>
+        </div>
+        <span class="modal-tag">Guide</span>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="background: #fef3c7; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🎪</div>
+            <div>
+              <strong>Center of the stage</strong>：Your stick figure stands here, representing "the you in the setting"
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="background: #fee2e2; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">①</div>
+            <div>
+              <strong>4 circles 4个圆圈</strong>：Click the circle and complete the task on the right panel 点击圆圈，在右侧面板完成任务
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="background: #dcfce7; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">✓</div>
+            <div>
+              <strong>Circle turns green圆圈变绿</strong>：This indicates that this part is completed 表示这部分已完成，小人身上会出现对应的装饰
+            </div>
+          </div>
+          
+          <div style="background: #f3f4f6; padding: 10px; border-radius: 10px; margin-top: 5px;">
+            <strong>💡 Tips</strong>：Each Wave card must complete four parts before moving on to the next one!每张Wave卡都要完成4个part才能去下一张！
+          </div>
+          
+          <div style="display: flex; justify-content: space-around; margin-top: 5px;">
+            <div style="text-align: center;">
+              <div>① 头饰</div>
+              <div style="font-size: 20px;">⭐</div>
+              <div style="font-size: 0.7rem;">Task type 任务类型</div>
+            </div>
+            <div style="text-align: center;">
+              <div>② 脖子</div>
+              <div style="font-size: 20px;">🔔</div>
+              <div style="font-size: 0.7rem;">The affected object 影响对象</div>
+            </div>
+            <div style="text-align: center;">
+              <div>③ 身体</div>
+              <div style="font-size: 20px;">⚙️📊</div>
+              <div style="font-size: 0.7rem;">STEM ability STEM 能力</div>
+            </div>
+            <div style="text-align: center;">
+              <div>④ 台词</div>
+              <div style="font-size: 20px;">💬</div>
+              <div style="font-size: 0.7rem;">Mission description 任务描述</div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-small secondary" onclick="document.getElementById('step4Guide').remove()"> Close</button>
+        <button class="btn-small" onclick="document.getElementById('step4Guide').remove()">Start ✨</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(guideModal);
+  
+  guideModal.addEventListener('click', (e) => {
+    if (e.target === guideModal) guideModal.remove();
+  });
+}
+
+  function renderStageOrbit(layout, wave, task, totalWaves){
+    const box = document.createElement("div");
+    box.className = "stage-orbit-shell";
+    box.innerHTML = `
+      <div class="stage-orbit-inner">
+        <div class="orbit-stage-card">
+          <div class="orbit-stage-floor"></div>
+          <div class="stage-stick" id="orbitStick">
+            <div class="stickman-circle"></div>
+            <div class="stickman-body"></div>
+            <div class="stickman-arm"></div>
+            <div class="stickman-leg-left"></div>
+            <div class="stickman-leg-right"></div>
+            <div class="stage-face" id="orbitFace"><span>•</span><span>•</span></div>
+            <div class="head-emoji" id="orbitHeadEmoji">⭐</div>
+            <div class="neck-emoji" id="orbitNeckEmoji">🔔</div>
+            <div class="body-deco" id="orbitBodyDeco">
+              <div class="body-dot slot-1" id="orbitDot1"></div>
+              <div class="body-dot slot-2" id="orbitDot2"></div>
+              <div class="body-dot slot-3" id="orbitDot3"></div>
+            </div>
+          </div>
+          <div class="stage-wave-caption">
+            <span>${wave.title}</span>
+            <span class="wave-sub">${wave.domain} · Stage: ${wave.stage}</span>
+          </div>
+        </div>
+
+        <button class="orbit-part-btn orbit-part-1" id="btnPartType">
+          <span>①</span><span>Task type 任务类型</span>
+          <div class="orbit-part-check">✓</div>
+        </button>
+        <button class="orbit-part-btn orbit-part-2" id="btnPartTarget">
+          <span>②</span><span>The affected object 影响对象</span>
+          <div class="orbit-part-check">✓</div>
+        </button>
+        <button class="orbit-part-btn orbit-part-3" id="btnPartStem">
+          <span>③</span><span>STEM ability STEM 能力</span>
+          <div class="orbit-part-check">✓</div>
+        </button>
+        <button class="orbit-part-btn orbit-part-4" id="btnPartLine">
+          <span>④</span><span>Mission 任务</span>
+          <div class="orbit-part-check">✓</div>
+        </button>
+      </div>
+    `;
+    layout.appendChild(box);
+
+    const colorConf = STICK_COLORS[state.character.colorIndex || 0];
+    $("orbitStick").style.color = colorConf.color;
+
+    const headEl = $("orbitHeadEmoji");
+    const neckEl = $("orbitNeckEmoji");
+    const dot1 = $("orbitDot1");
+    const dot2 = $("orbitDot2");
+    const dot3 = $("orbitDot3");
+    headEl.style.display = task.missionType ? "block":"none";
+    neckEl.style.display = task.targetGroup ? "block":"none";
+    [dot1,dot2,dot3].forEach(d=>d.style.display="none");
+
+    if(task.missionType){
+      const i = MISSION_TYPES.indexOf(task.missionType);
+      headEl.textContent = HEAD_EMOJIS[i] || "⭐";
+    }
+    if(task.targetGroup){
+      const allT = TARGET_GROUPS.map(t=>t.label);
+      const i = allT.indexOf(task.targetGroup);
+      neckEl.textContent = NECK_EMOJIS[i] || "🔔";
+    }
+    const stem = task.stemSkills || [];
+    [dot1,dot2,dot3].forEach((d,k)=>{
+      if(k < stem.length){
+        d.style.display="flex";
+        const allS = STEM_SKILLS.map(s=>s.label);
+        const idxS = allS.indexOf(stem[k]);
+        d.textContent = BODY_EMOJIS[idxS % BODY_EMOJIS.length] || "⚙️";
+      }
+    });
+
+// 四个圆的完成状态
+    if (task.missionType) $("btnPartType").classList.add("completed");
+    if (task.targetGroup) $("btnPartTarget").classList.add("completed");
+    if (stem.length > 0) $("btnPartStem").classList.add("completed");
+    if (task.oneLiner.trim()) $("btnPartLine").classList.add("completed");
+
+    // 四个圆的点击逻辑
+    $("btnPartType").onclick = () => {
+      state.step42ActivePanel = "type";
+      renderStep42();
+    };
+    $("btnPartTarget").onclick = () => {
+      state.step42ActivePanel = "target";
+      renderStep42();
+    };
+    $("btnPartStem").onclick = () => {
+      state.step42ActivePanel = "stem";
+      renderStep42();
+    };
+    $("btnPartLine").onclick = () => {
+      // 进入 ④ 之前检查：①②③ 是否都已完成
+      if (!task.missionType || !task.targetGroup || !task.stemSkills || !task.stemSkills.length) {
+        alert("Please first highlight ① ② ③ and then do the task of ④. 请先点亮 ① ② ③ 再来写 ④ 。");
+        return;
+      }
+      state.step42ActivePanel = "line";
+      renderStep42();
+    };
+  }
+
+  function renderRightPanel(layout, wave, task){
+    const box = document.createElement("div");
+    box.className = "step42-right-panel";
+    box.innerHTML = `
+      <div class="step42-right-header">
+        <div>
+          <div class="step42-right-title" id="rightPanelTitle"></div>
+          <div class="step42-right-sub" id="rightPanelSub"></div>
+        </div>
+        <span class="text-pill" id="rightPanelStatus"></span>
+      </div>
+      <div class="step42-right-body" id="rightPanelBody"></div>
+    `;
+    layout.appendChild(box);
+
+    const titleEl = $("rightPanelTitle");
+    const subEl = $("rightPanelSub");
+    const statusEl = $("rightPanelStatus");
+    const bodyEl = $("rightPanelBody");
+
+    const panel = state.step42ActivePanel;
+
+    if(panel === "type"){
+      titleEl.textContent = "① Task Type 任务类型";
+      subEl.textContent = "What type of events do you hope to complete under this wave 你希望在这个wave下完成什么类型的事件";
+      statusEl.textContent = task.missionType ? "Already selected" : "Not selected";
+      bodyEl.innerHTML = `
+        <div class="accessory-panel">
+          <div class="accessory-title">
+            <span>List of task types 任务类型列表</span>
+            <span>Click to select 点击进行选择 ✓</span>
+          </div>
+          <div class="accessory-grid" id="gridHead"></div>
+        </div>
+      `;
+      
+      // 添加任务提示
+const hintEl = document.createElement('div');
+hintEl.style.cssText = `
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+hintEl.innerHTML = `💡 <strong>Hint：</strong> ✨ The headdress of the little man will change according to his choice 小人的头饰会因选择改变`;
+bodyEl.insertBefore(hintEl, bodyEl.firstChild);
+      
+      renderHeadPanel(wave,task);
+    }else if(panel === "target"){
+      titleEl.textContent = "② Main affected objects 主要影响对象";
+      subEl.textContent = "Who will be most directly affected by your task? 谁会最直接被你的任务影响？";
+      statusEl.textContent = task.targetGroup ? "Already selected" : "Not selected";
+      bodyEl.innerHTML = `
+        <div class="accessory-panel">
+          <div class="accessory-title">
+            <span>List of affected objects 影响对象列表</span>
+            <span>Click to select 点击进行选择 ✓</span>
+          </div>
+          <div class="accessory-grid" id="gridNeck"></div>
+        </div>
+      `;
+      
+      // 添加任务提示
+const hintEl = document.createElement('div');
+hintEl.style.cssText = `
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+hintEl.innerHTML = `💡 <strong>Hint：</strong> 👥 The neck ornaments of the little people will change according to their choices 小人的颈饰会因选择改变`;
+bodyEl.insertBefore(hintEl, bodyEl.firstChild);
+      
+      renderNeckPanel(wave,task);
+    }else if(panel === "stem"){
+      titleEl.textContent = "③ STEM Ability (select 1-3)";
+      subEl.textContent = "Multiple selections indicate that this task will utilize multiple abilities simultaneously 多选代表这个任务会同时用到多种能力。";
+      statusEl.textContent = task.stemSkills.length ? `${task.stemSkills.length} abilities have been selected` : "Not selected";
+      bodyEl.innerHTML = `
+        <div class="accessory-panel">
+          <div class="accessory-title">
+            <span>List of STEM ability STEM 能力列表</span>
+            <span>At least 1 and at most 3 至少 1 个，最多 3 个</span>
+          </div>
+          <div class="stem-columns" id="stemColumns"></div>
+        </div>
+      `;
+      
+      // 添加任务提示
+const hintEl = document.createElement('div');
+hintEl.style.cssText = `
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+hintEl.innerHTML = `💡 <strong>提示：</strong> 🔧 Each ability will display a small badge 每个能力会显示一个小徽章`;
+bodyEl.insertBefore(hintEl, bodyEl.firstChild);
+      
+      renderBodyPanel(wave,task);
+} else {
+      // ④ 一句话任务描述
+      titleEl.textContent = "④ One-sentence task description 一句话任务描述";
+      subEl.textContent = "You can string the selected ①, ② and ③ into a line of dialogue, or you can generate it automatically first and then modify it. 把刚才选的 ①②③ 串成一句台词，也可以先自动生成再修改。";
+      statusEl.textContent = task.oneLiner && task.oneLiner.trim() ? "Filled in " : "Not filled in";
+
+      bodyEl.innerHTML = `
+        <div class="accessory-panel">
+          <div class="accessory-title">
+            <span>Write a line of dialogue for the task 写一句任务台词</span>
+            <span>
+              <button class="btn-small secondary" style="font-size:0.7rem; padding:0.15rem 0.5rem;"
+                      onclick="openKoziAssistant()">
+                🤖 ask AI for wording 向AI请教怎么写
+              </button>
+            </span>
+          </div>
+          <div class="field" style="margin-top:0.1rem;">
+            <textarea id="fieldOneLiner"
+              style="width:100%;min-height:90px;font-size:0.78rem;border-radius:0.75rem;border:1px solid #4b5563;background:#020617;color:#e5e7eb;padding:0.4rem;"
+              placeholder="For instance, I would lead a group of ______ (influence subjects) and utilize STEM abilities such as ______ to undertake a ______ task in the world brought by this Wave.
+              我会带着一群 ______（影响对象），利用 ______ 等 STEM 能力，在这张 Wave 带来的世界里，做一件 ______ 的任务。"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.35rem;gap:0.5rem;">
+          <div id="oneLinerError" class="error-text" style="display:none;"></div>
+         <div style="display:flex;gap:0.4rem;flex-shrink:0;">
+           <button id="btnOneLinerReset" class="btn-small secondary">
+              Reset · 我更新了 ①②③，重新生成
+            </button>
+            <button id="btnOneLinerFinish" class="btn-small">
+              Finish · 就这句了 ✓
+            </button>
+          </div>
+        </div>
+        </div>
+      `;
+
+// 添加任务提示
+const hintEl = document.createElement('div');
+hintEl.style.cssText = `
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+hintEl.innerHTML = `💡 <strong>Hint：</strong> 💬 Combine your previous choices into the challenges you want to complete under the current wave 把之前的选择组合成你想要在当前wave下完成的挑战`;
+bodyEl.insertBefore(hintEl, bodyEl.firstChild);
+
+      const ta = $("fieldOneLiner");
+
+      // ① 决定 textarea 的初始内容：
+      //    - 如果已经有保存的一句话，用它
+      //    - 否则如果有临时输入，用临时的
+      //    - 否则第一次进入：用 ①②③ 自动生成一条默认句子
+      let initialText = "";
+      if (task.oneLiner && task.oneLiner.trim()) {
+        initialText = task.oneLiner.trim();
+      } else if (task._tempOneLiner && task._tempOneLiner.trim()) {
+        initialText = task._tempOneLiner.trim();
+      } else {
+        // 第一次真正进入 ④：自动生成一句草稿
+        initialText = buildDefaultOneLiner(wave, task);
+        task._tempOneLiner = initialText;
+      }
+      ta.value = initialText;
+
+      // 输入时只更新临时值，不立即刷新、不立即打钩
+      ta.oninput = e => {
+        task._tempOneLiner = e.target.value;
+      };
+
+// Reset：根据当前 ①②③ 重新生成一句
+$("btnOneLinerReset").onclick = () => {
+  const errEl = $("oneLinerError");
+
+  // 先检查 ①②③ 是否完整
+  if (!task.missionType || !task.targetGroup || !task.stemSkills || !task.stemSkills.length) {
+    errEl.style.display = "block";
+    errEl.textContent = "Please first complete ① Task type, ② affected object, ③ STEM ability, and then click Reset to automatically generate a sentence. 请先完成 ① 任务类型、② 影响对象、③ STEM 能力，再点 Reset 自动生成一句。";
+    return;
+  }
+
+  // 用当前 ①②③ 重新拼一句
+  const newLine = buildDefaultOneLiner(wave, task);
+
+  // 更新到 textarea 和任务数据
+  ta.value = newLine;
+  task.oneLiner = newLine;
+  delete task._tempOneLiner;   // 清掉旧的临时缓存
+
+  // 清空错误提示，并立即刷新 4.2（让圆圈④保持勾选、右上状态更新）
+  errEl.style.display = "none";
+  renderStep42();
+};
+
+      // Finish：确认/保存这一句
+      $("btnOneLinerFinish").onclick = () => {
+        const text = (task._tempOneLiner ?? ta.value).trim();
+        const errEl = $("oneLinerError");
+
+        if (!text) {
+          errEl.style.display = "block";
+          errEl.textContent = "Please fill it in and then click Finish. 请填写后再点 Finish。";
+          return;
+        }
+
+        if (text.length < 6) {
+          errEl.style.display = "block";
+          errEl.textContent = "Could you write a little more? Write at least six characters 可以再多写一点吗？至少写满 6 个字";
+          return;
+        }
+
+        errEl.style.display = "none";
+        task.oneLiner = text;      // 真正保存
+        delete task._tempOneLiner; // 清掉临时
+
+        // 保存后刷新 UI：圆圈 ④ 打钩，右上状态更新
+        renderStep42();
+      };
+    }
+  }
+
+  function renderHeadPanel(wave,task){
+    const grid = $("gridHead");
+    grid.innerHTML = "";
+    MISSION_TYPES.forEach((typeLabel, i)=>{
+      const item = document.createElement("div");
+      item.className = "accessory-item"+(task.missionType===typeLabel?" active":"");
+      const [main,sub] = typeLabel.split("：");
+      item.innerHTML = `
+        <div><span class="accessory-emoji">${HEAD_EMOJIS[i]||"⭐"}</span>
+          <span class="accessory-label-main">${main}</span></div>
+        <div class="accessory-label-sub">${sub||""}</div>
+      `;
+      item.onclick = () => {
+        task.missionType = typeLabel;
+        renderStep42();
+      };
+      grid.appendChild(item);
+    });
+  }
+
+  function renderNeckPanel(wave,task){
+    const grid = $("gridNeck");
+    grid.innerHTML = "";
+    TARGET_GROUPS.forEach((tg, i)=>{
+      const item = document.createElement("div");
+      item.className = "accessory-item"+(task.targetGroup===tg.label?" active":"");
+      item.innerHTML = `
+        <div><span class="accessory-emoji">${NECK_EMOJIS[i]||"🔔"}</span>
+          <span class="accessory-label-main">${tg.group}</span></div>
+        <div class="accessory-label-sub">${tg.label}</div>
+      `;
+      item.onclick = () => {
+        task.targetGroup = tg.label;
+        renderStep42();
+      };
+      grid.appendChild(item);
+    });
+  }
+
+  function toggleStemSkill(waveId, label){
+    const task = ensureWaveTask(waveId);
+    const arr = task.stemSkills;
+    const idx = arr.indexOf(label);
+    if(idx>=0){
+      arr.splice(idx,1);
+    }else{
+      if(arr.length>=3){
+        alert("Each task card can select up to 3 STEM abilities. 每张任务卡最多选择 3 个 STEM 能力。");
+        return;
+      }
+      arr.push(label);
+    }
+  }
+
+  // STEM 能力：按 group 列出来，每个 group 一列
+  function renderBodyPanel(wave,task){
+    const wrap = $("stemColumns");
+    wrap.innerHTML = "";
+
+    const groupedStem = {};
+    STEM_SKILLS.forEach(s => {
+      if(!groupedStem[s.group]) groupedStem[s.group] = [];
+      groupedStem[s.group].push(s.label);
+    });
+    const used = task.stemSkills.length;
+
+    const allLabels = STEM_SKILLS.map(s=>s.label);
+
+    Object.keys(groupedStem).forEach(groupName=>{
+      const col = document.createElement("div");
+      col.className = "stem-column";
+      col.innerHTML = `<div class="stem-column-title">${groupName}</div>`;
+      const list = document.createElement("div");
+      list.className = "stem-column-list";
+
+      groupedStem[groupName].forEach(label=>{
+        const idxEmoji = allLabels.indexOf(label);
+        const emoji = BODY_EMOJIS[idxEmoji % BODY_EMOJIS.length] || "⚙️";
+        const selected = task.stemSkills.includes(label);
+        const disabled = !selected && used>=3;
+        const item = document.createElement("div");
+        item.className = "stem-column-item" + (selected?" active":"") + (disabled?" disabled":"");
+        item.innerHTML = `
+          <div style="display:flex;align-items:center;gap:0.25rem;">
+            <span class="accessory-emoji">${emoji}</span>
+            <span class="accessory-label-main">${label}</span>
+          </div>
+          <span class="accessory-label-sub">STEM 能力</span>
+        `;
+        if(!disabled || selected){
+          item.onclick = () => {
+            toggleStemSkill(wave.id,label);
+            renderStep42();
+          };
+        }
+        list.appendChild(item);
+      });
+
+      col.appendChild(list);
+      wrap.appendChild(col);
+    });
+  }
+
+/* 4.3 共现 & 2036 头条 - 优化版 */
+function renderStep43() {
+  modalTitle.textContent = "Card 4 · Step 4.3 Co-appearance & 2036 Headlines ";
+  modalTag.textContent = "Step 4.3";
+
+  const parts = VALUE_ATTRS.map(a =>
+    `${a.label.split("（")[0]}：${state.valuePoints[a.id]} 点`
+  );
+
+  modalBody.innerHTML = `
+    <div>
+      <div class="badge">Step 4.3 · 2030 相遇 & 2036 头条</div>
+      <p class="text-xs text-muted" style="margin-top:0.2rem;">
+        Congratulations on completing all the Wave task cards!
+        Now, put them in the timeline and see your future self.
+        恭喜你完成了所有Wave的任务卡！现在，把它们放进时间线，看见未来的自己。
+      </p>
+
+<!-- Shock 卡片 - 做成真正的抽卡效果 -->
+<div style="background: linear-gradient(135deg,#1e1b4b,#312e81); border-radius: 1.5rem; padding: 1.2rem; margin: 1rem 0; border: 2px solid #fbbf24; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative; overflow: hidden;">
+  
+  <!-- 卡片闪光效果 -->
+  <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 30%, rgba(255,215,0,0.2) 50%, transparent 70%); animation: cardShine 3s infinite; pointer-events: none;"></div>
+  
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <span style="font-size:2rem;">⚠️</span>
+      <div>
+        <div style="font-weight:800; color:#fbbf24; font-size:1.1rem;">SHOCK 挑战卡</div>
+        <div style="font-size:0.7rem; color:#9ca3af;">Add some surprises to the future 给未来加点意外</div>
+      </div>
+    </div>
+    <button id="btnDrawShock" style="
+      background: linear-gradient(135deg,#f59e0b,#d97706);
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(245,158,11,0.3);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: transform 0.2s;
+    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      🎲 Draw one 抽一张
+    </button>
+  </div>
+  
+  <div id="shockDisplay" style="min-height: 5rem;">
+    ${state.shock ? `
+      <div style="background: linear-gradient(135deg,#2a1f3d,#1e1a4a); padding: 1rem; border-radius: 1rem; border: 1px solid #fbbf24;">
+        <div style="display:flex; align-items:center; gap:0.8rem;">
+          <span style="font-size:2rem; filter: drop-shadow(0 0 5px #fbbf24);">⚡</span>
+          <div>
+            <div style="font-weight:800; color:#fbbf24; font-size:1rem; margin-bottom:0.3rem;">${state.shock.name}</div>
+            <div style="font-size:0.8rem; color:#e5e7eb;">${state.shock.description}</div>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div style="background: rgba(255,255,255,0.05); border-radius: 1rem; padding: 1.5rem; text-align: center; border: 2px dashed #fbbf24;">
+        <div style="font-size:3rem; margin-bottom:0.5rem; opacity:0.5;">🎴</div>
+        <div style="color:#9ca3af; font-style:italic;">Click to draw</div>
+        <div style="font-size:0.7rem; color:#6b7280; margin-top:0.3rem;">(You can continue without drawing.)（不抽也能继续）</div>
+      </div>
+    `}
+  </div>
+</div>
+
+<!-- 在 style 标签里添加这个动画 -->
+<style>
+@keyframes cardShine {
+  0% { transform: rotate(0deg) translate(-30%, -30%); }
+  100% { transform: rotate(360deg) translate(-30%, -30%); }
+}
+</style>
+
+      <!-- 2030 故事 - 用填空代替长输入 -->
+      <div style="background: #e0f2fe; border-radius: 1rem; padding: 0.8rem; margin: 1rem 0;">
+        <div style="font-weight:700; color:#0369a1; margin-bottom:0.5rem;">📅 2030年 · 第一次相遇</div>
+        <div style="background:white; padding:0.8rem; border-radius:0.8rem;">
+          <div style="margin-bottom:0.5rem; font-size:0.85rem;">填空成一段小故事：</div>
+          <div style="display:flex; flex-wrap:wrap; gap:0.3rem; align-items:center; margin-bottom:0.5rem;">
+            <span>2030年，我在</span>
+            <input id="field2030Place" style="width:100px; padding:0.2rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="地点" value="${state.text2030Place || ''}">
+            <span>，做着</span>
+            <input id="field2030Action" style="width:120px; padding:0.2rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="工作/学习" value="${state.text2030Action || ''}">
+            <span>的工作，第一次遇到了</span>
+            <input id="field2030Wave" style="width:120px; padding:0.2rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="某张Wave" value="${state.text2030Wave || ''}">
+            <span>，那天之后，我决定</span>
+            <input id="field2030Decision" style="width:150px; padding:0.2rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="做什么" value="${state.text2030Decision || ''}">
+            <span>。</span>
+          </div>
+          <textarea id="field2030Full" style="width:100%; min-height:60px; font-size:0.8rem; border:1px solid #ccc; border-radius:0.5rem; padding:0.4rem; margin-top:0.5rem;" placeholder="或者直接在这里写一段完整的故事（填空和这里二选一即可）">${state.text2030 || ''}</textarea>
+          <div style="display:flex; justify-content:flex-end; margin-top:0.3rem;">
+            <button class="btn-small secondary" id="btnGenerate2030" style="font-size:0.7rem;">✨ 用填空生成故事</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2036 头条 - 更轻松的方式 -->
+      <div style="background: #fef3c7; border-radius: 1rem; padding: 0.8rem; margin: 1rem 0;">
+        <div style="font-weight:700; color:#92400e; margin-bottom:0.5rem;">📰 2036年 · 头条新闻</div>
+        <div style="background:white; padding:0.8rem; border-radius:0.8rem;">
+          <div style="margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem; margin-bottom:0.2rem;">头条标题：</div>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <span style="background:#f3f4f6; padding:0.2rem 0.5rem; border-radius:0.5rem; font-size:0.8rem;">2036年2月27日</span>
+              <input id="field2036Title" style="flex:1; padding:0.3rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="例如：${state.character.major}专业毕业生带领团队攻克...">
+            </div>
+          </div>
+          <div style="margin-bottom:0.8rem;">
+            <div style="font-size:0.85rem; margin-bottom:0.2rem;">一句话·我最想被记住的价值：</div>
+            <input id="field2036Line" style="width:100%; padding:0.3rem; border:1px solid #ccc; border-radius:0.5rem;" placeholder="例如：我希望别人记得我是那个在困难时期也坚持...的人">
+          </div>
+          <div>
+            <div style="font-size:0.85rem; margin-bottom:0.2rem;">还想多说几句？（可选）</div>
+            <textarea id="field2036Extra" style="width:100%; min-height:50px; font-size:0.8rem; border:1px solid #ccc; border-radius:0.5rem; padding:0.4rem;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 价值观小贴士 -->
+      <div style="background: #f3f4f6; border-radius: 0.8rem; padding: 0.5rem; margin: 0.5rem 0; font-size:0.75rem; color:#4b5563; display:flex; gap:0.5rem; align-items:center;">
+        <span>💡</span>
+        <span>你的价值观：${parts.join(" · ")} — 让头条和宣言呼应你在乎的价值，故事会更动人！</span>
+      </div>
+
+      <div id="brainstormError" class="error-text" style="display:none; margin-top:0.35rem;"></div>
+    </div>
+  `;
+
+  // 加载已有数据
+  $("field2030Place").value = state.text2030Place || "";
+  $("field2030Action").value = state.text2030Action || "";
+  $("field2030Wave").value = state.text2030Wave || "";
+  $("field2030Decision").value = state.text2030Decision || "";
+  $("field2030Full").value = state.text2030 || "";
+  $("field2036Title").value = state.text2036Title || "";
+  $("field2036Line").value = state.text2036Line || "";
+  $("field2036Extra").value = state.text2036Extra || "";
+
+$("btnGenerate2030").onclick = () => {
+  const place = $("field2030Place").value.trim();
+  const action = $("field2030Action").value.trim();
+  const wave = $("field2030Wave").value.trim();
+  const decision = $("field2030Decision").value.trim();
+  
+  if (place || action || wave || decision) {
+    const story = `In 2030, I was doing ${action || 'some'} work at ${place || 'a place'} and encountered ${wave || 'some future trend'} for the first time. After that day, I decided to ${decision || 'new try'}.`;
+    $("field2030Full").value = story;
+    // 同时保存到 state.text2030
+    state.text2030 = story;
+  } else {
+    alert("Fill in at least one blank to generate a story! 至少填一个空，才能生成故事哦！");
+  }
+};
+
+  // 输入变化时保存到state
+  $("field2030Place").oninput = e => state.text2030Place = e.target.value;
+  $("field2030Action").oninput = e => state.text2030Action = e.target.value;
+  $("field2030Wave").oninput = e => state.text2030Wave = e.target.value;
+  $("field2030Decision").oninput = e => state.text2030Decision = e.target.value;
+  $("field2030Full").oninput = e => state.text2030 = e.target.value;
+  $("field2036Title").oninput = e => state.text2036Title = e.target.value;
+  $("field2036Line").oninput = e => state.text2036Line = e.target.value;
+  $("field2036Extra").oninput = e => state.text2036Extra = e.target.value;
+
+  // Shock相关逻辑
+  if (state.shock) {
+    $("shockName").style.display = "inline-flex";
+    $("shockName").textContent = state.shock.name;
+    $("shockDesc").textContent = state.shock.description;
+  }
+  
+  $("btnDrawShock").onclick = () => {
+    state.shock = randomFrom(SHOCK_POOL);
+    const shockDisplay = document.getElementById('shockDisplay');
+    shockDisplay.innerHTML = `
+      <div style="background:#fef2f2; padding:0.6rem; border-radius:0.8rem;">
+        <div style="font-weight:600;">${state.shock.name}</div>
+        <div class="text-xs" style="margin-top:0.2rem;">${state.shock.description}</div>
+      </div>
+    `;
+  };
+
+  modalFooter.innerHTML = `
+    <button class="btn-small secondary" id="btnBack42">← Previous Step：4.2 wave mission design</button>
+    <button class="btn-small" id="btnFinishStep4">save all result from Step 4 ✓</button>
+  `;
+  
+  $("btnBack42").onclick = () => {
+    state.step4Page = "4.2";
+    renderStep4Page();
+  };
+  
+$("btnFinishStep4").onclick = () => {
+  // 获取填空字段的值
+  const place = $("field2030Place").value.trim();
+  const action = $("field2030Action").value.trim();
+  const wave = $("field2030Wave").value.trim();
+  const decision = $("field2030Decision").value.trim();
+  const fullStory = $("field2030Full").value.trim();
+  
+  // 如果有填空内容，生成完整故事并保存到 state.text2030
+  if (place || action || wave || decision) {
+    state.text2030 = `In 2030, I was doing ${action || 'some'} work at ${place || 'a place'} and encountered ${wave || 'some future trend'} for the first time. After that day, I decided to ${decision || 'new try'}。`;
+  } else if (fullStory) {
+    // 如果有直接写的故事，保存它
+    state.text2030 = fullStory;
+  } else {
+    // 如果什么都没填，清空
+    state.text2030 = '';
+  }
+  
+  // 组装2036文本
+  const title36 = $("field2036Title").value.trim();
+  const line36 = $("field2036Line").value.trim();
+  const extra36 = $("field2036Extra").value.trim();
+  
+  // 如果有标题或价值宣言，组装成文本
+  if (title36 || line36 || extra36) {
+    state.text2036 = 
+      (title36 ? `2036 头条：${title36}\n` : "") +
+      (line36 ? `我想被记住的是：${line36}\n` : "") +
+      (extra36 ? `\n补充故事：\n${extra36}` : "");
+  } else {
+    state.text2036 = '';
+  }
+
+  const r = validateBrainstorm();
+  if (!r.ok) {
+    $("brainstormError").textContent = r.msg;
+    $("brainstormError").style.display = "block";
+    return;
+  }
+  $("brainstormError").style.display = "none";
+  state.done[4] = true;
+  if (state.currentStep === 4) state.currentStep = 5;
+  modal.style.display = "none";
+  renderCards();
+  renderDots();
+  refreshHeader();
+};
+}
+
+  function validateBrainstorm(){
+    const missing=[];
+    if(!state.stemBaseText.trim()) missing.push("4.1 Underlying Associations of STEM");
+
+    const waves=getAllSelectedWaves();
+    const incomplete = waves.filter(w => !isWaveTaskCompleted(state.waveTasks[w.id]));
+    if(incomplete.length){
+      missing.push(`4.2 Professional Task + Stage Costume Change (There are still ${incomplete.length} waves unfinished) 4.2 职业任务 + 换装舞台（还有 ${incomplete.length} 张 Wave 未完成）`);
+    }
+
+    if(!state.text2030.trim()) missing.push("4.3.B 2030 Co-occurrence Imagination 4.3.B 2030 共现想象");
+    if(!state.text2036.trim()) missing.push("4.3.C2036 Headlines & Values 4.3.C 2036 头条 & 价值观");
+    if(missing.length) return {ok:false,msg:"The following parts are not yet completed 以下部分尚未完成：\n- "+missing.join("\n- ")};
+    return {ok:true,msg:""};
+  }
+
+  /******** Step5 报告 ********/
+function buildReport() {
+  const waves = getAllSelectedWaves();
+  const shock = state.shock;
+  const { major, intro, identity, colorIndex } = state.character;
+  const stickName = state.stickNames[colorIndex] || 'Stickman';
+  
+  // 从 stemBaseText 中提取 S/T/E+M 句子
+  const stemLines = state.stemBaseText.split('\n');
+  const sLine = stemLines.find(l => l.startsWith('S：'))?.replace('S：', '') || '';
+  const tLine = stemLines.find(l => l.startsWith('T：'))?.replace('T：', '') || '';
+  const emLine = stemLines.find(l => l.startsWith('E+M：'))?.replace('E+M：', '') || '';
+
+  let t = "🎉【Your 2036 Future Career report 你的2036未来职业报告】🎉\n";
+  t += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
+  
+  // 一、你的未来身份卡（强调专业与STEM的连接）
+  t += "🔹 I.Your future identity card 🔹\n";
+  t += `   ${stickName}（${major}）\n`;
+  t += `   “${intro}”\n`;
+  t += `   The you now：${identity}\n`;
+  t += `   \n   💡 your major「${major}」is part of STEM in itself——\n`;
+  t += `      Whether in liberal arts or science, they are all solving problems with scientific methods, technological tools and design thinking.\n\n`;
+
+  // 二、你感知到的未来浪潮（强调每个Wave的STEM元素）
+  t += "🌊 II. The Future Waves You Perceive 🌊\n";
+  if (waves.length) {
+    waves.forEach((w, i) => {
+      const isKey = state.keyWaveIds.includes(w.id);
+      t += `   ${i+1}. ${w.title} ${isKey ? '🌟 主力' : ''}\n`;
+      t += `      ${w.description}\n`;
+      
+      // 根据Domain添加STEM提示
+      let stemHint = '';
+      if (w.domain.includes('Technology')) {
+        stemHint = '🔧 Technology-driven: Transforming tools and working methods';
+      } else if (w.domain.includes('Environment')) {
+        stemHint = '🌱 Scientific support: Environmental science, ecology, engineering';
+      } else if (w.domain.includes('Wellbeing')) {
+        stemHint = '⚕️ Technology + Humanities: Biotechnology, Psychology, Public Health';
+      } else if (w.domain.includes('Governance')) {
+        stemHint = '📊 Data + Policy: Optimize decision-making with data and systems thinking';
+      } else if (w.domain.includes('Economy')) {
+        stemHint = '📈 Economy + Technology: Data analysis, business model innovation';
+      } else if (w.domain.includes('Socio-cultural')) {
+        stemHint = '🎭 Humanities + Technology: Understanding the Relationship between Humans and Technology';
+      }
+      t += `      ${stemHint}\n`;
+    });
+  } else {
+    t += "   You haven't chosen any Wave yet\n";
+  }
+  t += "\n";
+
+  // 三、你的STEM工具箱（新增！强调S/T/E/M拆解）
+  t += "🔧 III. Your STEM Toolkit 🔧\n";
+  if (sLine || tLine || emLine) {
+    t += `   🔬 科学（Science）：${sLine || 'You haven not written down your scientific method yet'}\n`;
+    t += `   💻 技术（Technology）：${tLine || 'You haven not written down your technology tool yet'}\n`;
+    t += `   🎨 工程+数学（Engineering+Math）：${emLine || 'You haven not written down your design thinking yet'}\n`;
+  } else {
+    t += "   You haven't disassembled your STEM toolkit yet\n";
+  }
+  t += `   \n   💡 See? There are actually so many STEM elements hidden in your major「${major}」\n\n`;
+
+  // 四、你的价值观罗盘（连接价值观与STEM选择）
+  t += "🧭 IV. Your Values Compass 🧭\n";
+  const valueChart = VALUE_ATTRS.map(a => {
+    const points = state.valuePoints[a.id];
+    const bar = '█'.repeat(points) + '░'.repeat(3 - points);
+    let valueHint = '';
+    if (a.id === 'Impact') valueHint = '(Promoting Technology for Good) ';
+    else if (a.id === 'Income') valueHint = '(Create value with skills) ';
+    else if (a.id === 'Fun') valueHint = '(Find fun in STEM) ';
+    else if (a.id === 'Stability') valueHint = '(Achieve stability with professional knowledge';
+    else if (a.id === 'Growth') valueHint = '(Keep learning new technologies';
+    else if (a.id === 'Connection') valueHint = '(Connecting people with society through technology';
+    return `   ${a.label.split('（')[0]}：${points}point ${bar} ${valueHint}`;
+  }).join('\n');
+  t += valueChart + "\n\n";
+
+  // 五、你的软能力徽章（强调软能力与STEM的结合）
+  t += "🏅 V. Your Soft Power Badge 🏅\n";
+  if (state.wpSelected?.length) {
+    state.wpSelected.forEach(wp => {
+      let wpHint = '';
+      if (wp === 'Empathy共情') wpHint = '(Design people-oriented technology)';
+      else if (wp === 'Cooperation协作') wpHint = '(Interdisciplinary teamwork) ';
+      else if (wp === 'Creativity创造力') wpHint = '(Innovative Solutions) ';
+      else if (wp === 'Critical thinking批判思维') wpHint = '(Assess the impact of technology)';
+      else if (wp === 'Ethical thinking伦理思考') wpHint = '(Technological ethical decision-making)';
+      else if (wp === 'Leadership领导力') wpHint = '(Leading STEM projects) ';
+      else if (wp === 'Resilience韧性') wpHint = '(Facing technical challenges)';
+      t += `   🟢 ${wp} ${wpHint}\n`;
+    });
+  } else {
+    t += "   You haven't chosen soft skills yet \n";
+  }
+  t += `   \n   💡 These soft skills are precisely the key to making STEM truly serve people!\n\n`;
+
+  // 六、你的 Shock 挑战（可选）
+  t += "⚠️ VI. Your Shock Challenge ⚠️\n";
+  if (shock) {
+    t += `   ${shock.name}\n`;
+    t += `   ${shock.description}\n`;
+    t += `   💡 Facing such challenges, STEM knowledge can help you\n`;
+    t += `      - Analyze the root cause of the problem with data\n`;
+    t += `      - Design solutions with technology\n`;
+    t += `      - Prevent crises with systems thinking\n\n`;
+  } else {
+    t += "   You have chosen a relatively stable future\n";
+    t += "   💡 Even in a stable manner, STEM is quietly supporting daily life - mobile phones, the Internet, healthcare, transportation...\n\n";
+  }
+
+  // 七、你的2030故事（提取其中的STEM元素）
+  t += "📖 VII. The First Encounter in 2030 📖\n";
+  t += `   ${state.text2030 || '（你还没有写下这个故事）'}\n`;
+  if (state.text2030) {
+    t += `   \n   💡 In this story, the shadow of STEM is everywhere:\n`;
+    t += `      - You work at "${state.text2030Place > 'somewhere '}", where scientific knowledge is needed\n`;
+    t += `      - You「${state.text2030Action || 'Doing something'}」, has technical support behind it\n`;
+    t += `      - You have come across「${state.text2030Wave || 'Some trend'}」, which is precisely the technological wave\n`;
+  }
+  t += "\n";
+
+  // 八、你的2036头条（强调STEM成就）
+  t += "📰 Viii. You in 2036 📰\n";
+  t += `   ${state.text2036 || '(You haven not written the headline yet.'}\n`;
+  if (state.text2036) {
+    t += `   \n   💡 The headline of 2036 is the proof that STEM is changing the world!\n`;
+  }
+  t += "\n";
+
+  // 九、给未来的自己（点明主旨）
+  t += "💌 Ix. To my future self 💌\n";
+  t += `   Dear ${stickName},\n\n`;
+  t += `   Look, starting from the "${major}" major,\n`;
+  t += `   You have already connected with so many future waves, STEM tools and soft capabilities.\n\n`;
+  t += `   STEM has never been an unattainable laboratory term\n`;
+  t += `   • It's in the mobile phone you use every day\n`;
+  t += `   • Among the environmental issues you care about\n`;
+  t += `   • In the way you help others\n`;
+  t += `   • In the new things you have created\n\n`;
+  t += `   In 2036, you won't have become a "scientist"\n`;
+  t += `   Instead, it has become someone who can use scientific thinking and technical tools、\n`;
+  t += `   People who solve problems with design wisdom and humanistic care.\n\n`;
+  t += `   This is the true connection between STEM and your life.\n\n`;
+
+  t += "━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+  t += "✨ The future is here, but it is unevenly distributed 未来已来，只是分布不均 ✨\n";
+  t += "✨ STEM is right beside you, in the future you choose STEM就在你身边，就在你选择的未来里 ✨\n";
+
+  return t;
+}
+
+  function renderStep5Report(){
+      const colorConf = STICK_COLORS[state.character.colorIndex || 0];
+  const stickName = state.stickNames[state.character.colorIndex || 0] || 'stickman';
+    modalBody.innerHTML = `
+          <div>
+<!-- 2036年欢迎仪式 - 小人活过来！ -->
+<div style="text-align: center; margin-bottom: 1.5rem;">
+  <div style="font-size:2rem; margin-bottom:0.5rem; animation: confetti 3s infinite;">🎉 🎊 ✨</div>
+  <div style="font-size:1.2rem; color: #fbbf24; font-weight:bold; margin-bottom:0.2rem;">🚀 Time jump completed! </div>
+  <div style="font-size:0.9rem; color: #9ca3af;">你已成功抵达 2036 年</div>
+</div>
+
+<!-- 会动的小人 + 欢迎语 -->
+<div style="display:flex; align-items:center; gap:2rem; margin-bottom:2rem; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); padding:1.5rem; border-radius:2rem; border: 2px solid rgba(251,191,36,0.3); position: relative; overflow: hidden;">
+
+  <!-- 背景光效 -->
+  <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 30% 30%, rgba(251,191,36,0.2), transparent 70%); pointer-events: none;"></div>
+  
+  <!-- 左边：会动的小人 -->
+  <div style="position: relative; animation: bounce 2s infinite;">
+    <div style="width:100px; height:120px; background:${colorConf.color}; border-radius:1rem; display:flex; align-items:center; justify-content:center; font-size:3rem; position: relative; box-shadow: 0 20px 30px rgba(0,0,0,0.3);">
+      🧑
+    </div>
+    <!-- 说话气泡（随机生成不同的话） -->
+    <div style="position: absolute; top: -20px; right: -40px; background: white; color: black; padding: 0.4rem 0.8rem; border-radius: 999px; font-size:0.8rem; font-weight:bold; white-space: nowrap; box-shadow: 0 5px 10px rgba(0,0,0,0.2); animation: float 3s infinite;">
+      ${[
+        `"Hi, I'm ${stickName}！"`,
+        `"Here I come in 2036!"`,
+        `"${state.character.major} changes the world!"`,
+        `"Welcome to my future!"`,
+        `"I've been waiting for you for a long time!"`,
+      ][Math.floor(Math.random() * 6)]}
+      <div style="position: absolute; bottom: -8px; left: 20px; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 8px solid white;"></div>
+    </div>
+    <!-- 闪光星星 -->
+    <div style="position: absolute; top: -10px; left: -10px; animation: spin 4s linear infinite;">✨</div>
+    <div style="position: absolute; bottom: -10px; right: -10px; animation: spin 3s linear infinite reverse;">⭐</div>
+  </div>
+  
+  <!-- 右边：文字信息 -->
+  <div style="flex:1;">
+    <div style="font-weight:bold; font-size:1.8rem; background: linear-gradient(135deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom:0.2rem;">
+      ${stickName}
+    </div>
+    <div style="font-size:1.1rem; color:#e5e7eb; margin-bottom:0.3rem;">
+      ${state.character.major || 'Future Explorer'}
+    </div>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+      <span style="background: rgba(251,191,36,0.2); padding:0.2rem 0.8rem; border-radius:999px; font-size:0.8rem; color:#fbbf24;">
+        ⏰ 2036年
+      </span>
+      <span style="background: rgba(255,255,255,0.1); padding:0.2rem 0.8rem; border-radius:999px; font-size:0.8rem;">
+        ${state.character.identity || 'Time Traveler'}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 成就徽章展示区 - 增加动效 -->
+<div style="display:flex; gap:0.5rem; justify-content:center; margin-bottom:1rem;">
+  <div style="background: linear-gradient(135deg,#fbbf24,#f59e0b); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; animation: pulse 2s infinite;" title="Complete the character creation 完成角色创建">
+    🏆
+  </div>
+  <div style="background: linear-gradient(135deg,#60a5fa,#3b82f6); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; animation: pulse 2s infinite 0.2s;" title="Draw 7 Wave cards 抽满7张Wave">
+    🌊
+  </div>
+  <div style="background: linear-gradient(135deg,#34d399,#10b981); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; animation: pulse 2s infinite 0.4s;" title="Complete all tasks 完成所有任务">
+    ⭐
+  </div>
+</div>
+
+<!-- 添加动画样式 -->
+<style>
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+@keyframes confetti {
+  0%, 100% { opacity: 0.5; transform: rotate(0deg); }
+  50% { opacity: 1; transform: rotate(5deg); }
+}
+</style>
+    
+    <div>
+        <div class="badge">Step 5 · Generate the 2036 Career Report</div>
+        <p class="text-xs text-muted" style="margin-top:0.2rem;">
+          This level will piece together all the fragments you wrote earlier into a career story report and generate some AI question templates along the way to facilitate your further refinement.<br>
+          这一关会把你前面写的所有碎片，拼成一份职业故事报告，并顺带生成一些 AI 提问模板，方便你继续打磨。
+        </p>
+
+        <div style="margin-top:0.4rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
+          <button class="btn-small" id="btnGenerateReport">Generate report ✅</button>
+          <button class="btn-small secondary" id="btnCopyReport">Copy the report</button>
+          <button class="btn-small secondary" id="btnAiPolishKozi">🤖 Open AI to polish report</button>
+          <button class="btn-small secondary" id="btnAiPolish">Generate a "report polishing" question template</button>
+          <button class="btn-small secondary" id="btnAiMissions">Generate the "Mission Generator" question template</button>
+          <button class="btn-small secondary" id="btnAiPoster">Generate the "2036 Poster Prompt" question template</button>
+          <button class="btn-small secondary" id="btnSimpleReflection">🤔 reflection assistant</button>
+        </div>
+
+        <div id="reportError" class="error-text" style="display:none;margin-top:0.3rem;"></div>
+        <div id="reportSuccess" class="success-text" style="display:none;margin-top:0.1rem;"></div>
+
+        <div style="margin-top:0.5rem;">
+          <div style="font-size:0.8rem;font-weight:600;">Automatically generate the 2036 career report 自动生成 2036 职业报告</div>
+          <div id="reportBox" class="report-box" style="margin-top:0.25rem;">
+（尚未生成报告。请先完成前 4 张卡牌的必填内容，再点击上方「生成报告」。）The report has not yet been generated. Please complete the required fields for the first 4 cards first, and then click "Generate Report" at the top.
+          </div>
+        </div>
+      </div>
+    `;
+
+    modalFooter.innerHTML = `
+      <button class="btn-small secondary" id="btnCloseModal">Back to main page</button>
+      <button class="btn-small" id="btnMarkStep5">complete this round ✓</button>
+    `;
+    $("btnCloseModal").onclick = () => (modal.style.display="none");
+    $("btnMarkStep5").onclick = () => {
+      state.done[5] = true;
+      modal.style.display = "none";
+      renderCards();
+      renderDots();
+      refreshHeader();
+    };
+
+    $("btnGenerateReport").onclick = () => {
+      const r = validateBrainstorm();
+      if(!r.ok){
+        $("reportError").textContent = "There is still the previous brain-storming unfinished:\n" + r.msg;
+        $("reportError").style.display = "block";
+        $("reportSuccess").style.display = "none";
+        return;
+      }
+      $("reportError").style.display = "none";
+      state.reportText = buildReport();
+      $("reportBox").textContent = state.reportText;
+      $("reportSuccess").textContent = "The report has been generated. You can copy or use the button below to generate a question template.";
+      $("reportSuccess").style.display = "block";
+    };
+
+    $("btnCopyReport").onclick = async () => {
+      if(!state.reportText){
+        $("reportError").textContent = "Please prepare the report, Sir.";
+        $("reportError").style.display = "block";
+        $("reportSuccess").style.display = "none";
+        return;
+      }
+      try{
+        await navigator.clipboard.writeText(state.reportText);
+        $("reportError").style.display = "none";
+        $("reportSuccess").textContent = "It has been copied to the clipboard.";
+        $("reportSuccess").style.display = "block";
+      }catch(e){
+        $("reportError").textContent = "Copy failed: Please manually select all the text above to copy.";
+        $("reportError").style.display = "block";
+        $("reportSuccess").style.display = "none";
+      }
+    };
+
+    $("btnAiPolish").onclick = openPolishPromptModal;
+    $("btnAiPoster").onclick = openPosterPromptModal;
+    $("btnAiMissions").onclick = openMissionPromptModal;
+    $("btnSimpleReflection").onclick = openSimpleReflection;
+
+    // 新增：直接打开 Kozi AI，让学生粘贴报告去润色
+    $("btnAiPolishKozi").onclick = () => {
+      if (!state.reportText) {
+        alert("Please generate the report first. 请先点击上方「Generate report」生成报告。");
+        return;
+      }
+      // 先复制报告到剪贴板，方便学生在AI里粘贴
+      navigator.clipboard.writeText(state.reportText).catch(()=>{});
+      openKoziAssistant();
+    };
+  }
+
+function openSimpleReflection() {
+  const { major } = state.character;
+  const wpList = state.wpSelected?.join('、') || '（我还没特别选，可以根据一般学生常见的软技能来假设）';
+  
+  const promptText = `
+你是一位擅长做学习反思引导的教练。
+
+我刚刚完成了一个叫「Future Waves」的未来职业游戏，过程里我：
+- 选择/假设的专业或兴趣方向：${major || "（未填写）"}
+- 在游戏里勾选过的软能力（全人能力）：${wpList}
+
+请你帮我做一份「简洁但有深度」的游戏反思提纲，包括：
+
+1）3–5 个可以写日记式反思的问题，适合我课后慢慢写（用“我”来称呼自己）；
+2）一段 150–200 字左右的反思示例文字，用第一人称“我”，可以围绕：
+   - 我在游戏中有哪些出乎意料的选择？
+   - 这说明我其实在乎什么？
+   - 我接下来可以尝试一个怎样的小行动？
+
+请全程用中文输出，并用清晰的小标题或编号分段。`.trim();
+
+  window.prompt("复制提问模板 · Copy prompt template", promptText);
+}
+
+function openStemPromptModal(){
+  const waves=getAllSelectedWaves();
+  const promptText = `
+你是面向中学生 / 大学生的 STEM 教学助教，请帮我把下面这个专业，用学生能听懂的方式，拆解成一套「STEM 工具箱」说明。
+
+【我的职业角色】
+- 专业 / 兴趣方向：${state.character.major}
+- 简介（我可能会做什么）：${state.character.intro || '（还没写，可以根据专业合理想象）'}
+
+【我目前抽到的一些 Future Waves】
+${waves.length ? waves.map((w,i)=>`${i+1}. ${w.title}（${w.domain}｜Stage: ${w.stage}）：${w.description}`).join("\n") : "（我还没有抽到 Wave，如果需要可以先按常见趋势自己假设几条。）"}
+
+请你帮我输出「2–3 套不同风格」的 STEM 拆解方案。每一套都请按下面结构来写：
+
+1）一句话 overview：用很口语的话介绍「这个专业的 STEM 气质」是什么，比如更偏调查 / 设计 / 数据 / 技术应用等。
+2）S（Science / 调查）：
+   - 我会用哪些方式来搞清楚一个问题？（例如：访谈 / 问卷 / 实验 / 文献梳理 / 观察记录 ……）
+3）T（Technology / 技术工具）：
+   - 我会用到哪些工具 / 软件 / 技术？（例如：数据分析工具、建模软件、可视化工具、编程语言等）
+4）E（Engineering / 设计与系统）：
+   - 我会怎么「设计一个系统 / 服务 / 产品」来解决问题？（可以举 1–2 个典型例子）
+5）M（Math / 数据与判断）：
+   - 我会怎样用数据或指标来判断方案是不是有效？（例如用什么数据、怎么比较、看哪些指标）
+
+输出要求：
+- 用中文；
+- 至少给出 2 套，最好 3 套不同侧重点的版本（例如：研究型 / 应用型 / 创新型）；
+- 语言尽量口语化、简短有力，让高中生 / 大学生可以直接复制粘贴到自己的游戏文本里；
+- 用清晰的小标题或编号区分不同版本。`.trim();
+
+  window.prompt("复制提问模板 · Copy prompt template", promptText);
+}
+
+function openPolishPromptModal(){
+  if(!state.reportText){
+    alert("请先生成报告再润色 Please generate report first");
+    return;
+  }
+  const promptText = `
+你是中文写作教练，要在「不改变大致结构与信息」的前提下，帮我润色一份学生写的未来职业故事报告。
+
+【原始报告全文】
+${state.reportText}
+
+【请你扮演的角色】
+- 擅长给高中生 / 大学生润色个人故事；
+- 既尊重学生原本的表达，又能让文字更流畅、有画面感。
+
+【润色目标】
+1. 语言更自然、顺畅，有适度的节奏感和画面感；
+2. 结构保持大体不变（例如“未来身份 / Future Waves / STEM 工具箱 / 2030 故事 / 2036 头条”等板块还在），可以：
+   - 优化小标题（让它们更有吸引力）
+   - 合并特别零碎的句子
+3. 不要「过度成人化」，要保留「这是学生自己写的」感觉；
+4. 适当增加少量细节（例如场景、情绪、感受），但不要扩写成长篇大论。
+
+【输出格式】
+请直接输出一版「润色后的完整中文报告」，不需要解释过程，用分段和小标题清晰排版即可。`.trim();
+
+  window.prompt("复制提问模板 · Copy prompt template", promptText);
+}
+
+function openPosterPromptModal(){
+  if(!state.reportText){
+    alert("请先生成报告再生成海报提示 Please generate report first");
+    return;
+  }
+  const brief = state.reportText.length > 1500 ? state.reportText.slice(0,1500)+"...\n\n（后略）" : state.reportText;
+  const promptText = `
+你是一名为图像生成模型（如 DALL·E、Midjourney、K中图像等）写英文提示词的 Prompt 设计师，目标是帮我为一位学生生成一张「2036 年未来职业海报」。
+
+【学生的未来故事摘要（中文）】
+${brief}
+
+【关键信息摘取】
+- 角色专业 / 领域：${state.character.major || '（报告中可自行提取）'}
+- 角色在 2036 年的典型工作 / 场景：请从上面的故事中自行归纳；
+- 重要的 Future Waves / 趋势：同样从故事与报告中提炼 2–3 个关键词；
+- 故事基调：青年感、真实可信、带一点理想主义。
+
+【你的任务】
+请基于以上内容，帮我写出 1 段适用于图像生成模型的「英文 prompt」，需要包括：
+
+1. 角色外观与状态：
+   - 大致年龄、气质（例如 calm / determined / curious / optimistic）
+   - 穿着风格（可以结合专业领域，例如研究者、设计师、教育者、工程师等形象）
+
+2. 场景与环境：
+   - 这是 2036 年的什么地方？（例如：未来教室、太空相关场景、低碳城市实验室、线上虚拟协作空间等）
+   - 场景中有哪些和故事相关的关键元素（设备、屏幕、数据可视化、自然环境、学生/市民等）
+
+3. 氛围与风格：
+   - 整体情绪（hopeful / warm / inspiring / calm…）
+   - 光线（例如 soft warm light, sunset, holographic neon light…）
+   - 画面风格（例如 semi-realistic illustration, cinematic, soft pastel colors, isometric, flat illustration…）
+
+4. 构图建议：
+   - 角色与背景的大致关系（例如：角色在前景，背景中有城市和数据屏幕；或角色在中景，被学生/用户环绕等）
+
+【输出要求】
+- 只输出英文 prompt（一段或多行均可），不要再附加中文解释；
+- 用逗号分隔关键信息，适合直接复制到图像生成模型中；
+- 适当加入“2036”、“future career”、“STEM & humanities”、“education / environment / technology”（按故事实际内容选用）的关键词。`.trim();
+
+  window.prompt("复制提问模板 · Copy prompt template", promptText);
+}
+
+  modal.addEventListener("click", (e) => {
+    if(e.target === modal){
+      modal.style.display = "none";
+    }
+  });
+
+function openMissionPromptModal(){
+  if (!state.reportText) {
+    const ok = window.confirm("建议先点击「生成报告」，让系统把前面所有信息整合成一份完整故事，再生成任务生成器提问模板。\n\n是否继续？");
+    if (!ok) return;
+  }
+
+  const waves = getAllSelectedWaves();
+  if (!waves.length) {
+    alert("还没有 Wave 卡信息，无法生成任务生成器提示。请先完成 Step 2 和 4.2。\nNo Wave cards found. Please complete step 2 and 4.2 first.");
+    return;
+  }
+
+  const { major, intro, identity } = state.character;
+
+  let waveTaskLines = "";
+  waves.forEach((w, idx) => {
+    const task = state.waveTasks[w.id] || {};
+    waveTaskLines += `
+Wave ${idx+1}: ${w.title}（${w.domain}｜Stage: ${w.stage}）
+- 任务类型: ${task.missionType || "(未设置)"}
+- 主要影响对象: ${task.targetGroup || "(未设置)"}
+- STEM 能力: ${
+      task.stemSkills && task.stemSkills.length
+        ? task.stemSkills.join(", ")
+        : "(未设置)"
+    }
+- 学生的一句话任务想法: ${(task.oneLiner || "(未填写)").trim()}
+`.trim() + "\n\n";
+  });
+
+  const valueSummary = VALUE_ATTRS.map(a =>
+    `${a.label.split("（")[0]}: ${state.valuePoints[a.id]} 点`
+  ).join("; ");
+
+  const shockPart = state.shock
+    ? `学生选择的 Shock 场景（世界的额外挑战）：
+- ${state.shock.name}：${state.shock.description}\n`
+    : "学生没有选择具体的 Shock 场景，可以按一般不确定的未来社会来假设。\n";
+
+  const text2030 = state.text2030.trim() || "(未填写)";
+  const text2036 = state.text2036.trim() || "(未填写)";
+
+  const wpList = (state.wpSelected || []).join(", ") || "未特别选择（你可以按常见的“共情、协作、创造力”等来合理假设）";
+
+  const promptText = `
+你是一位帮助教师和学生一起设计「未来趋势 × 职业任务」项目的课程设计助手。
+
+一名学生刚刚完成了一个叫「Future Waves」的卡牌游戏，游戏过程里他/她：
+1. 创建了一个 2036 年的未来职业角色；
+2. 选了一些 Future Waves（趋势/变化）；
+3. 为每张 Wave 粗略设计了一些任务想法。
+
+现在我们想根据这些素材，生成更完整、更有可操作性的学习任务。
+
+【学生基本信息】
+- 专业 / 兴趣方向：${major || "(未设置)"}
+- 简短介绍（他们可能会做什么）：${intro || "(未设置)"}
+- 当前身份（例如：大一学生 / 在职老师等）：${identity || "(未设置)"}
+
+【价值观取向（游戏中分配的 6 点）】
+- ${valueSummary}
+
+【学生希望发展的软能力（全人/跨学科技能）】
+- ${wpList}
+
+【每张 Wave 及其对应的任务草稿】
+${waveTaskLines.trim()}
+
+【时间线想象】
+- 2030 年共现故事（第一次接触未来工作/趋势）：
+${text2030}
+
+- 2036 年头条 & 个人价值宣言：
+${text2036}
+
+【Shock / 压力测试场景】
+${shockPart}
+
+现在，请你基于以上所有信息，帮我为这个学生设计 3–5 个更完整的「未来职业任务」，这些任务应该：
+
+- 可以在中学 / 大学课堂，或青年项目中实际使用；
+- 结合学生的专业方向、价值观和选过的 Waves；
+- 同时包含「STEM 实践」和「软技能发展」两个层面。
+
+请按下面统一格式输出每个任务：
+
+任务 1：【任务标题】
+- 情境背景：
+  - 发生在什么时间、地点？（例如：2030 年某城市的学校 / 2033 年的社区实验室等）
+  - 和哪 1–2 个 Wave 最相关？
+- 角色位置：
+  - 学生在这个任务中的身份是什么？（例如：数据志愿者、社区设计师、教育技术助教等）
+- 主要挑战：
+  - 他们要解决的核心问题/需求是什么？
+- 行动步骤（3–5 条）：
+  - 每条描述学生「具体要做什么」；
+  - 至少 1–2 条要点明会用到哪些 STEM 能力（如：编程、数据分析、调查、原型制作等）；
+  - 同时指出会锻炼到哪些软能力（如：共情、协作、批判思维、伦理决策等）。
+- 预期影响：
+  - 这个任务会对谁产生什么积极影响？
+- 反思问题（2–3 个）：
+  - 任务结束后，教师可以引导学生思考的问题。
+
+任务 2：……
+任务 3：……
+
+输出要求：
+- 用中文；
+- 结构清晰、分条列出，方便直接拷贝进教学设计文档；
+- 所有任务要与学生的专业方向、价值观和原有想法保持合理关联。`.trim();
+
+  window.prompt("复制提问模板 · Copy prompt template", promptText);
+}
+
+// ========== AI 助手功能 ==========
+// 模拟AI响应数据
+const AI_RESPONSES = {
+  waveExplain: {
+    "Future Workplace": (major) => `基于你的专业「${major}」，这个Wave意味着：
+
+🔍 **具体机会**：
+• 你可以设计适合远程协作的专业工具
+• 用专业知识优化虚拟工作流程
+• 成为跨地域团队的专业沟通桥梁
+
+📚 **现在可以准备**：
+1. 学习主流协作工具的高级功能
+2. 参与线上跨国项目积累经验
+3. 研究远程工作如何影响你的专业领域`,
+
+    "Space Data Economy": (major) => `作为「${major}」专业的学生，你可以：
+
+🚀 **发展方向**：
+• 用卫星数据分析城市/环境/农业问题
+• 参与空间数据可视化项目
+• 为商业客户提供空间数据咨询
+
+💡 **行动建议**：
+- 学习GIS和遥感基础知识
+- 关注开放地球观测数据平台
+- 参加空间数据相关的比赛`,
+
+    "AI ethics": (major) => `「${major}」专业如何参与AI伦理？
+
+🤔 **你可以贡献**：
+• 从人文视角审视AI的社会影响
+• 参与AI伦理框架的设计
+• 帮助非技术人群理解AI
+
+📖 **现在开始**：
+1. 学习AI基本原理
+2. 关注AI伦理案例研究
+3. 参与跨学科AI讨论`,
+
+    "Decarbonisation": (major) => `「${major}」专业在碳中和浪潮中：
+
+🌱 **你的角色**：
+• 用专业知识推动低碳转型
+• 参与碳足迹评估项目
+• 设计低碳解决方案
+
+⚡ **下一步**：
+- 了解碳中和基础知识
+- 关注行业低碳案例
+- 参与可持续发展相关活动`,
+
+    "Technology-driven education": (major) => `「${major}」专业如何参与教育科技？
+
+🎓 **你可以**：
+• 用专业知识设计学科工具
+• 参与教育数据分析项目
+• 成为技术+教育的桥梁
+
+📱 **开始行动**：
+1. 体验主流教育APP
+2. 学习教育心理学基础
+3. 尝试设计一个小工具原型`
+  },
+
+  missionGenerate: (major, waves, values) => {
+    const topValue = Object.entries(values)
+      .sort((a,b) => b[1] - a[1])[0][0];
+    
+    const valueMap = {
+      Impact: "影响力",
+      Income: "收入",
+      Fun: "创意",
+      Stability: "稳定",
+      Growth: "成长",
+      Connection: "关系"
+    };
+    
+    return `基于你的专业「${major}」和价值观偏好「${valueMap[topValue] || '成长'}」，我为你生成了3个个性化任务：
+
+🎯 **任务1：社区实验室**
+• 做什么：在社区组织未来工作坊
+• 为什么适合你：结合专业知识和Wave理解
+• STEM元素：数据分析 + 系统设计
+• 具体行动：邀请10个邻居参与，收集反馈
+
+🎯 **任务2：AI辅助咨询**
+• 做什么：用AI工具帮助同学做职业探索
+• 为什么适合你：发挥你对未来的理解
+• STEM元素：AI工具使用 + 访谈技巧
+• 具体行动：完成5个咨询案例并记录
+
+🎯 **任务3：2036时间胶囊**
+• 做什么：创作一个多媒体未来故事
+• 为什么适合你：整合所有Wave和价值观
+• STEM元素：数字创作 + 趋势分析
+• 具体行动：制作一个3分钟视频/图文作品`;
+  },
+
+  valueInsight: (values) => {
+    const sorted = Object.entries(values)
+      .map(([id, points]) => ({ 
+        id, 
+        points,
+        label: VALUE_ATTRS.find(a => a.id === id)?.label.split('（')[0] || id
+      }))
+      .sort((a,b) => b.points - a.points);
+    
+    const top2 = sorted.slice(0,2).map(v => v.label).join('」和「');
+    
+    return `📊 **价值观分析**
+
+你最重要的两个价值是：「${top2}」
+
+这个组合暗示你可能是：
+• **桥梁型人才** - 连接技术与人文
+• **教育者/策展人** - 擅长传播和整合
+• **以人为本的设计师** - 关注用户体验
+
+🌟 **成长建议**
+1. 寻找跨学科项目机会
+2. 练习把复杂概念讲清楚
+3. 关注科技如何服务人类需求
+
+💡 **适合的职业方向**
+- 教育科技产品经理
+- 科技传播/科普工作者
+- 用户体验研究员
+- 社会创新项目策划`;
+  },
+
+  nextStep: (currentStep) => {
+    const steps = {
+      1: {
+        advice: "完成卡牌1：创建你的火柴人角色",
+        tip: "名字和颜色都会在最终报告出现，认真选哦！"
+      },
+      2: {
+        advice: "完成卡牌2：抽取至少5张Wave卡，Technology维度要2张",
+        tip: "其他维度每个最多1张，注意规则"
+      },
+      3: {
+        advice: "完成卡牌3：选2-3张主力Wave，分配6点价值观",
+        tip: "点击价值观标签可以循环选择0-3点"
+      },
+      4: {
+        advice: "完成卡牌4：给每张Wave设计任务卡",
+        tip: "每个Wave都要完成4个part，小人的装饰会变化"
+      },
+      5: {
+        advice: "完成卡牌5：生成你的2036职业报告",
+        tip: "报告生成后可以用AI助手润色"
+      }
+    };
+    
+    const step = steps[currentStep] || steps[1];
+    return `📌 **下一步**
+${step.advice}
+
+✨ **小提示**
+${step.tip}
+
+需要我详细解释某个部分吗？`;
+  }
+};
+
+// 默认响应（当没有匹配时）
+const DEFAULT_RESPONSE = `🤔 让我想想...
+
+基于你的专业和选择，我建议你：
+1. 先完成当前步骤的必填内容
+2. 遇到困难可以看看右上角的提示
+3. 随时点回来问我更具体的问题
+
+需要我详细解释某个Wave或步骤吗？`;
+
+// 添加AI浮动按钮
+function addAIFloatingButton() {
+  // 检查是否已存在
+  if (document.getElementById('aiFloatingButton')) return;
+  
+  const aiButton = document.createElement('div');
+  aiButton.id = 'aiFloatingButton';
+  aiButton.innerHTML = '🤖 Assistant';
+  aiButton.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    left: 20px;  /* ← 从 right 改成 left */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+  `;
+  
+  aiButton.onmouseover = () => {
+    aiButton.style.transform = 'scale(1.05)';
+    aiButton.style.boxShadow = '0 6px 20px rgba(0,0,0,0.3)';
+  };
+  
+  aiButton.onmouseout = () => {
+    aiButton.style.transform = 'scale(1)';
+    aiButton.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+  };
+  
+  aiButton.onclick = showAIMenu;
+  
+  document.body.appendChild(aiButton);
+}
+
+// 显示游戏提示菜单
+function showAIMenu() {
+   // 检查是否正在某个卡牌的模态框内
+  const isInMission = modal.style.display === 'flex';
+  
+  // 如果不在任何卡牌内，提示用户先点击卡牌
+  if (!isInMission) {
+    const tipModal = document.createElement('div');
+    tipModal.className = 'modal-backdrop';
+    tipModal.style.display = 'flex';
+    tipModal.innerHTML = `
+      <div class="modal fade-in" style="max-width: 350px;">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">💡 Hints </div>
+          </div>
+          <span class="modal-tag">Tips</span>
+        </div>
+        <div class="modal-body" style="text-align: center; padding: 20px;">
+          <div style="font-size: 3rem; margin-bottom: 10px;">👉</div>
+          <p style="font-size: 1rem; margin-bottom: 15px;">Click on the corresponding card first, then use the assistant! <br>
+            请先点击对应的卡牌，进入该步骤后再使用小助手哦！</p>
+          <p style="font-size: 0.85rem; color: #6b7280;">Currewnt step: Card ${state.currentStep}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-main" onclick="this.closest('.modal-backdrop').remove()"> OK </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(tipModal);
+    tipModal.addEventListener('click', (e) => {
+      if (e.target === tipModal) tipModal.remove();
+    });
+    return;
+  }
+  
+    const waves = getAllSelectedWaves();
+  const hasWaves = waves.length > 0;
+  const currentStep = state.currentStep;
+  
+  const menuModal = document.createElement('div');
+  menuModal.className = 'modal-backdrop';
+  menuModal.style.display = 'flex';
+  menuModal.id = 'aiMenuModal';
+
+  // 根据不同步骤显示不同的提示
+let stepHint = '';
+let stepQuestion = '';
+switch(currentStep) {
+  case 1:
+    stepHint = '🎨 创建你的未来身份 · Create Your Future Identity';
+    stepQuestion = '如果20年后的你有一个职业身份，它会是什么？<br>If you had a professional identity 20 years from now, what would it be?';
+    break;
+  case 2:
+    stepHint = '🌊 感知未来的浪潮 · Sense Future Waves';
+    stepQuestion = '哪些正在发生的趋势会影响你的专业？<br>Which ongoing trends might affect your major?';
+    break;
+  case 3:
+    stepHint = '⚡ 明确你的动力 · Clarify Your Motivation';
+    stepQuestion = '在未来世界里，什么对你最重要？<br>In the future world, what matters most to you?';
+    break;
+  case 4:
+    stepHint = '🛠️ 设计你的行动 · Design Your Actions';
+    stepQuestion = '面对这些趋势，你能做什么具体的事？<br>Facing these trends, what concrete actions can you take?';
+    break;
+  case 5:
+    stepHint = '📄 看见未来的自己 · See Your Future Self';
+    stepQuestion = '2036年的你，会有什么样的故事？<br>What story will your 2036 self have?';
+    break;
+  default:
+    stepHint = '👋 按顺序点击卡牌1→5完成游戏。<br>Click cards 1→5 in order to complete the game.';
+    stepQuestion = '';
+}
+  
+  menuModal.innerHTML = `
+    <div class="modal fade-in" style="max-width: 450px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🎯 Game Assistant </div>
+          <div style="font-size:0.78rem;color:#6b7280;">Current Step: card ${currentStep}</div>
+        </div>
+        <span class="modal-tag">Tips</span>
+      </div>
+      <div class="modal-body" style="padding: 10px 0;">
+        
+<!-- 步骤提示卡片 -->
+<div style="background: #fef3c7; padding: 12px; border-radius: 12px; margin-bottom: 15px;">
+  <div style="font-weight:700; margin-bottom:5px;">📌 ${stepHint}</div>
+  <div style="font-size:0.9rem;">${stepQuestion}</div>
+</div>
+        
+        <!-- 快速提示列表 -->
+        <div style="margin: 15px 0 10px; font-weight:600;">💡 快速提示 · Quick Tips</div>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+          ${currentStep === 1 ? `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">给火柴人起个喜欢的名字，它会一直陪着你 · Give your stickman a name, it will accompany you throughout</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">专业可以选你感兴趣的，不一定是现在学的 · Choose a major you're interested in, not necessarily your current one</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">名字和颜色都会在最终报告出现，认真选哦 · Name and color will appear in the final report, choose carefully</span>
+            </div>
+          ` : currentStep === 2 ? `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">Technology维度要抽2张，其他维度抽1张 · Draw 2 from Technology, 1 from each other domain</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">总共抽7张Wave卡，可以慢慢选 · Draw 7 Wave cards in total, take your time</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">抽完可以点「删掉」重新抽，直到满意 · Click "Delete" to redraw until satisfied</span>
+            </div>
+          ` : currentStep === 3 ? `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">主力Wave选2-3张，它们会成为你的核心方向 · Select 2-3 main Waves, they become your core direction</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">6点价值观可以自由分配，点击标签循环选择 · 6 value points to allocate freely, click tags to cycle</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">情景题没有对错，只是记录你的偏好 · No right or wrong in scenarios, just record your preference</span>
+            </div>
+          ` : currentStep === 4 ? `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">每张Wave都要完成4个part，小人会换装 · Complete all 4 parts for each Wave, your figure dresses up</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">4.1是STEM拆解，4.2是任务设计，4.3是未来想象 · 4.1 STEM breakdown, 4.2 mission design, 4.3 future imagination</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">Shock卡可选，但会让你的故事更有深度 · Shock card optional, but adds depth to your story</span>
+            </div>
+          ` : currentStep === 5 ? `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">点击「生成报告」会把所有碎片拼成故事 · Click "Generate Report" to piece together your story</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">可以用AI润色、生成海报Prompt · Use AI to polish and generate poster prompts</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">报告可以复制保存，作为你的未来规划参考 · Copy and save report as reference for future planning</span>
+            </div>
+          ` : `
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">1</span>
+              <span style="font-size:0.85rem;">点击卡牌按顺序完成，锁住的卡牌要先完成前面的 · Click cards in order, locked cards require completing previous ones</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">2</span>
+              <span style="font-size:0.85rem;">每个Wave都要完成4个part，小人的装饰会变化 · Each Wave requires completing 4 parts, your figure's accessories change</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; background:#f3f4f6; padding:8px; border-radius:8px;">
+              <span style="background:#60a5fa; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px;">3</span>
+              <span style="font-size:0.85rem;">价值观属性点可以点击循环选择0-3点 · Click value tags to cycle through 0-3 points</span>
+            </div>
+          `}
+        </div>
+        
+        <!-- DeepSeek 提问模板按钮 -->
+                <div style="margin: 10px 0 5px; font-weight:600;">🤖 Deeper help？</div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button class="btn-main" style="width:100%; text-align:left; justify-content:flex-start; background: linear-gradient(135deg,#00A67E,#006B4C);" onclick="copyDeepSeekPrompt()">
+            📋 Copy Prompt Template复制当前步骤提问模板
+          </button>
+          <button class="btn-main" style="width:100%; text-align:left; justify-content:flex-start; background: #1e3a8a; color: white;" onclick="openKoziAssistant()">
+            🤖 Open Coze   打开游戏专属 AI 助手
+          </button>
+        </div>
+        </div>
+        <div style="margin-top: 10px; padding: 8px; background: #e0f2fe; border-radius: 8px; font-size:0.75rem; color:#0369a1;">
+          💡 复制模板 → 打开Coze小助手 → 粘贴提问，获得个性化建议！<br>
+          Copy template → Open Coze → Paste and ask!
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button class="btn-small secondary" onclick="document.getElementById('aiMenuModal').remove()"> Close 关闭</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(menuModal);
+  
+  menuModal.addEventListener('click', (e) => {
+    if (e.target === menuModal) menuModal.remove();
+  });
+}
+
+// 打开DeepSeek官网
+function openDeepSeek() {
+  window.open('https://chat.deepseek.com/', '_blank');
+}
+
+// 复制当前步骤的提问模板
+function copyDeepSeekPrompt() {
+  const currentStep = state.currentStep;
+  // 优先从state读取已保存的专业，如果没有再从输入框读取
+  let major = state.character.major;
+  if (!major) {
+    const majorEl = document.getElementById('fieldMajor');
+    major = majorEl ? majorEl.value.trim() : '';
+  }
+  const intro = state.character.intro;
+  const waves = getAllSelectedWaves();
+  
+  // 根据步骤检查必要信息
+  switch(currentStep) {
+    case 1:
+      if (!major) {
+        alert('⚠️ 请先在卡牌1中填写「专业」后再复制模板！\nPlease complete your major in Card 1 first!');
+        return;
+      }
+      break;
+    case 2:
+      if (waves.length === 0) {
+        alert('⚠️ 请先在卡牌2中抽取至少1张Wave后再复制模板！\nPlease draw at least 1 Wave in Card 2 first!');
+        return;
+      }
+      break;
+    case 3:
+      if (waves.length === 0) {
+        alert('⚠️ 请先在卡牌2中抽取Wave，再来卡牌3复制模板！\nPlease complete Card 2 first before copying template for Card 3!');
+        return;
+      }
+      break;
+    case 4:
+      if (waves.length === 0) {
+        alert('⚠️ 请先完成卡牌2抽取Wave，再来卡牌4复制模板！\nPlease complete Card 2 first before copying template for Card 4!');
+        return;
+      }
+      break;
+    case 5:
+      if (!state.reportText) {
+        alert('⚠️ 请先在卡牌5中点击「生成报告」后再复制模板！\nPlease generate the report in Card 5 first!');
+        return;
+      }
+      break;
+  }
+  
+  // 构建游戏背景描述
+  let gameContext = `我正在玩一个叫「Future Waves」的未来职业探索游戏。\n`;
+  if (major && intro) {
+    gameContext += `我的角色设定：\n- 专业/兴趣领域：${major}\n- 角色简介：${intro}\n`;
+  } else {
+    gameContext += `（我的角色信息将在填写后自动补充）\n`;
+  }
+  
+  if (waves.length > 0) {
+    gameContext += `\n我已经抽到的Future Waves（未来趋势）：\n`;
+    waves.forEach((w, i) => {
+      gameContext += `${i+1}. ${w.title}（${w.domain}）\n`;
+    });
+  }
+  
+  // 根据当前步骤生成不同的提问模板
+  let prompt = '';
+  let promptType = '';
+  
+  switch(currentStep) {
+case 1:
+  prompt = `${gameContext}
+
+现在我在游戏的第 1 步【职业登场 / Character Entry】。
+
+我已经/计划选择的专业或兴趣领域是：
+- 专业/兴趣（major）：${major || '（还没想好，可以帮我一起想）'}
+
+【你扮演的角色】
+你是擅长面向青少年/大学生做生涯指导的 AI 教练。
+
+【我想要你帮的事】
+1. 帮我一起设计一个「2036 年的职业角色设定」，包括：
+   - 一个有记忆点、带一点未来感的角色称号（中文为主，可带少量英文）
+   - 一句 30–50 字的角色简介：这个人平时在做什么、有怎样的风格
+2. 这个设定要同时满足：
+   - 跟我的专业/兴趣「${major || '（待定专业）'}」有合理关联
+   - 不仅是“职位名称”，而是一个有故事感的「人物原型」
+3. 最后请用 3 行输出结果：
+   - 行 1：角色称号（中英可混，但以中文为主）
+   - 行 2：第一人称自我介绍（“我是一个……”）
+   - 行 3：这个角色在 2036 年典型的一天会做哪 3 件事（用列表形式简要写出）
+
+如果你觉得我现在填的专业太笼统，也可以先帮我把它细化成 1–2 个更具体的方向。`;
+  promptType = 'Step 1：角色设定模板';
+  break;
+      
+case 2:
+  prompt = `${gameContext}
+
+现在我在游戏的第 2 步【Draw Waves / 抽取未来浪潮卡】。
+
+【你扮演的角色】
+你是一位熟悉趋势研究、也懂一点职业规划的顾问，要帮我判断：
+在这么多 Future Waves 里，哪些对我「${major || '我的兴趣方向'}」来说最值得重点关注。
+
+【目前我抽到的 Waves】
+（只给你标题和大致领域，方便你整体判断）
+${waves.map((w,i)=>`${i+1}. ${w.title}（${w.domain}, Stage: ${w.stage}）`).join('\n')}
+
+【我想要你帮的事】
+1. 先整体看一下这些 Wave，按「和我的专业/兴趣相关度」从高到低，粗略分三档：
+   - 高相关（Strong match）
+   - 中相关（Maybe）
+   - 低相关（Weak link）
+2. 从中帮我挑出「2–3 个特别值得深挖的 Wave」，每个简单说明：
+   - 为什么它值得我重点关注（和专业、个人发展有什么连接）
+   - 这个 Wave 可能会打开哪些长期机会（用 2–3 条 bullet 写）
+3. 最后，请给我 2–3 个「在校期间可以做的小行动」，帮助我开始更好理解这些 Wave。
+   - 行动要尽量具体、可执行（比如：查什么、问谁、做什么小项目）
+
+输出时请用中文，结构清晰，用列表分点说明。`;
+  promptType = 'Step 2：Wave 选择与分析模板';
+  break;
+      
+case 3:
+  const valueSummary = Object.entries(state.valuePoints)
+    .map(([id, points]) => {
+      const label = VALUE_ATTRS.find(a => a.id === id)?.label.split('（')[0] || id;
+      return `${label}：${points} 点`;
+    })
+    .join('，');
+
+  prompt = `${gameContext}
+
+现在我在游戏的第 3 步【Main Waves & Values / 主力浪潮 & 价值观】。
+
+【你扮演的角色】
+你是一位做「价值观 × 职业方向」匹配的生涯教练。
+
+【当前信息】
+1. 我的专业/兴趣：${major || '（未填写，可按“泛学科兴趣”来假设）'}
+2. 我目前抽到的 Future Waves：
+${waves.map((w,i)=>`${i+1}. ${w.title}（${w.domain}，Stage: ${w.stage}）`).join('\n')}
+3. 我在游戏里给「价值观属性」分配的 6 点如下：
+   - ${valueSummary || '（我还没分配，你也可以先帮我想一个合理的分配方案）'}
+
+【我想要你帮的事】
+1. 先根据这些价值观分配，帮我用 2–3 句话总结：
+   - 我更看重什么（例如影响力/稳定/收入/好玩/成长/关系……）
+   - 这类价值观组合在现实中更像哪几种「人格/职业倾向」
+2. 结合上面这些 Waves，帮我推荐「2–3 个最适合作为主力的 Wave」：
+   - 每个说明：它和我的价值观、专业有什么契合点？
+3. 最后，请给我 3 个「可能比较适合我」的职业方向/角色原型：
+   - 不必是标准专业名，可以是带画面感的描述（例如“做数据的社区设计师”这类）
+
+请用中文，分小标题+列表输出，方便我直接阅读和对照。`;
+  promptType = 'Step 3：价值观 × 主力 Wave 分析模板';
+  break;
+      
+case 4:
+  const subStep = state.step4Page || '4.1';
+
+  if (subStep === '4.1') {
+    prompt = `${gameContext}
+
+现在我在游戏的第 4 步【STEM Underlying Associations / STEM 底层关联】的子步骤 4.1。
+
+【你扮演的角色】
+你是善于给中学生/大学生讲「STEM 其实离你很近」的教学助教，要帮我把自己的专业拆成好理解的 STEM 语言。
+
+【我的专业】
+- 专业/兴趣：${major || '（未填写，你可以先假设一个通用的“文/理/工/社科/艺术”方向）'}
+
+【我想要你帮的事】
+请帮我为这个专业设计「3 套不同风格」的 STEM 拆解，每一套都用下面这个结构：
+
+- S（Science / 调查）：我通常会用哪些方法去「弄清楚一个问题」？（如：访谈、问卷、实验、文献梳理……）
+- T（Technology / 技术工具）：我常用或应该去掌握的技术/软件/工具有哪些？（如：数据分析工具、建模软件、可视化工具等）
+- E（Engineering / 设计与系统）：我会如何「设计一个系统/方案/服务」来解决问题？
+- M（Math / 数据与判断）：我会怎样用数据/指标来判断方案是不是有效？
+
+要求：
+1. 至少给出 2–3 套不同角度的拆解（比如：偏研究型 / 偏实践型 / 偏设计型）
+2. 每一套都尽量口语化、短句化，适合学生直接复制粘贴使用
+3. 输出时用中文，结构类似：
+   - 版本 A：……
+   - 版本 B：……
+
+如果你觉得有必要，也可以顺便提醒我：哪个版本更适合放进「未来职业故事」里。`;
+    promptType = 'Step 4.1：专业 → STEM 工具箱拆解模板';
+  }  else if (subStep === '4.2') {
+    const wavesList = getAllSelectedWaves();
+    const currentWave = wavesList[state.step4CurrentIndex || 0];
+
+    prompt = `${gameContext}
+
+现在我在游戏的第 4 步【Wave Mission & Costume Stage / 每张 Wave 的任务卡】的子步骤 4.2。
+
+我当前正在为这张 Wave 设计任务：
+- Wave 标题：${currentWave?.title || '（当前索引还没对上）'}
+- 领域与阶段：${currentWave ? `${currentWave.domain} · Stage: ${currentWave.stage}` : ''}
+
+【你扮演的角色】
+你是项目式学习（PBL）/STEM 课程设计顾问，要帮我把这张 Wave 变成「1–3 个具体可做的任务」。
+
+【任务卡需要的 4 个元素】
+1. 任务类型（例如：拯救类 / 建设类 / 服务类 / 探索类 / 教育类 / 设计类 / 管理类 / 创业类）
+2. 主要影响对象（例如：学生/老师/社区居民/某类行业从业者/环境系统/未来世代……）
+3. STEM 能力（从“调查、编程、数据分析、原型制作、可视化、项目管理”等里选 1–3 个）
+4. 一句话任务描述（可以被我直接粘贴到游戏里）
+
+【我想要你帮的事】
+1. 先简单说一下：这个 Wave 对我这种「${major || '（未填写专业）'}」方向的学生来说，有哪些可能的「切入角度」？（列出 2–3 个）
+2. 然后基于这些角度，帮我设计 2–3 个任务卡，每个都写清：
+   - 任务标题
+   - 任务类型
+   - 主要影响对象
+   - 推荐的 STEM 能力（1–3 个）
+   - 一句话任务描述（第一人称，“我会……”开头，便于我直接复制）
+
+要求：
+- 全程中文
+- 任务要具体，适合在「项目作业 / 课题研究 / 社团活动」里实践
+- 尽量跟我的专业和兴趣方向挂钩。`;
+    promptType = 'Step 4.2：单张 Wave 任务卡设计模板';
+  } else { // subStep === '4.3'
+    const keyWaves = waves.filter(w => state.keyWaveIds.includes(w.id));
+    const keyWaveNames = keyWaves.map(w => w.title).join('、');
+    const valueDesc = Object.entries(state.valuePoints)
+      .filter(([_, points]) => points > 0)
+      .map(([id, points]) => {
+        const label = VALUE_ATTRS.find(a => a.id === id)?.label.split('（')[0] || id;
+        return `${label}（${points} 点）`;
+      })
+      .join('，') || '（我还没认真分配，可以帮我想一个典型的组合）';
+
+    const shockPart = state.shock
+      ? `\n【Shock 场景】
+- ${state.shock.name}：${state.shock.description}\n`
+      : '';
+
+    prompt = `${gameContext}
+
+现在我在游戏的第 4 步【Co-appearance & 2036 Headlines / 2030 共现 & 2036 头条】的子步骤 4.3。
+
+【已知信息】
+- 我的专业/兴趣：${major || '（未填写，可按你认为最合适的方向来假设）'}
+- 我抽到的所有 Waves：${waves.map(w => w.title).join('、')}
+- 我自己选出来的主力 Waves：${keyWaveNames || '（还没选好，你也可以建议 2–3 个）'}
+- 我的价值观偏好：${valueDesc}
+${shockPart || ''}
+
+【你扮演的角色】
+你是一个帮助学生「写未来故事」的写作教练，要帮我构思：
+1. 2030 年：我第一次在现实生活中和这些 Waves「碰头」的场景
+2. 2036 年：一条关于「未来的我」的新闻头条 + 简短报道
+3. 一句个人价值宣言：别人会因为哪一件事记住我
+
+【我想要你帮的事】
+1. 先用 2–3 句话，帮我定一个大致的「未来走向」（例如：偏研究、偏实践、偏创意、偏教育、偏创业……）。
+2. 然后分别写：
+   - 一段 120–180 字左右的「2030 小故事」，用第一人称“我”，要能看出我第一次认真意识到某张 Wave 对我的影响；
+   - 一条「2036 年新闻标题」（有真实新闻感，例如“2036 年 2 月 27 日，XXX……”）；
+   - 一段 80–120 字的简短报道，说明：我在做什么工作 / 为谁带来了什么改变 / 用到了哪些 STEM 能力；
+   - 一句简练有力的「个人价值宣言」，类似“我希望别人记得的是：……”。
+
+要求：
+- 全程用中文、第一人称视角（新闻标题可用第三人称）
+- 情节可以适度理想化，但要让人觉得「现实中有可能一步步做到」
+- 尽量把我的专业、主力 Waves 和价值观都自然带进去。`;
+    promptType = 'Step 4.3：2030 & 2036 故事构思模板';
+  }
+  break;
+      
+case 5:
+  prompt = `${gameContext}
+
+现在我在游戏的第 5 步【Generate 2036 Career Report / 生成职业报告】。
+
+我已经在游戏里生成了一份「2036 未来职业报告」，内容大致包含：
+- 角色设定（我是谁、学什么）
+- 抽到和选择的 Future Waves
+- 我的价值观分配与软技能
+- 每张 Wave 下设计的一句话任务
+- 2030 小故事与 2036 头条想象
+
+【你扮演的角色】
+你是一位善于把「游戏结果 → 下一步真实行动」的职业发展顾问。
+
+【我想要你帮的事】
+1. 假设你已经读过我的整份报告，请帮我总结：
+   - 报告里最值得肯定的 3 个亮点（从专业选择、价值观、任务设计、故事想象里都可以找）
+   - 报告里还比较模糊、可以进一步具体化的 2–3 个地方
+2. 基于这些内容，请给我设计「未来 3–6 个月」可以真的去做的 3–5 个小行动，例如：
+   - 可以去尝试的项目/比赛/社团角色
+   - 可以去了解/访谈的对象
+   - 可以去搭建的个人作品或作品集
+3. 最后，请给我 3 个你觉得适合我用来自我反思的问题，方便我课后继续思考。
+
+要求：
+- 全程中文，结构清晰，用编号或小标题分段
+- 行动建议要尽量具体、可执行，不要只停留在抽象概念。`;
+  promptType = 'Step 5：报告解读与下一步行动模板';
+  break;
+      
+    default:
+      prompt = `${gameContext}
+
+我现在在游戏的第${currentStep}步，想获得一些帮助。
+
+请给我一些建议：
+1. 这一步的重点是什么？
+2. 有什么小技巧可以更好地完成？
+3. 这一步对我的未来规划有什么意义？
+
+要求：语气友好，指引清晰。`;
+      promptType = '游戏建议';
+  }
+  
+  // 复制到剪贴板
+  navigator.clipboard.writeText(prompt).then(() => {
+alert(`✅ ${promptType}模板已复制！\n\n现在可以去 Coze 小助手粘贴提问了。`);
+  }).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = prompt;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+alert(`✅ ${promptType}模板已复制！\n\n现在可以去 Coze 小助手粘贴提问了。`);
+  });
+}
+
+// AI请求处理
+window.askAI = async function(action) {
+  // 关闭菜单
+  const menuModal = document.getElementById('aiMenuModal');
+  if (menuModal) menuModal.remove();
+  
+  // 显示加载中
+  const loadingModal = document.createElement('div');
+  loadingModal.className = 'modal-backdrop';
+  loadingModal.style.display = 'flex';
+  loadingModal.id = 'loadingModal';
+  loadingModal.innerHTML = `
+    <div class="modal" style="max-width: 300px; text-align: center;">
+      <div class="modal-body">
+        <div style="font-size: 2rem; margin-bottom: 10px; animation: bounce 1s infinite;">🤔</div>
+        <div>AI正在思考中...</div>
+        <div style="font-size: 0.7rem; color: #6b7280; margin-top: 10px;">根据你的专业和选择生成建议</div>
+      </div>
+    </div>
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+    </style>
+  `;
+  document.body.appendChild(loadingModal);
+  
+  // 模拟API延迟
+  await new Promise(resolve => setTimeout(resolve, 1500));
+  
+  let response = '';
+  const waves = getAllSelectedWaves();
+  const idx = state.step4CurrentIndex || 0;
+  const currentWave = waves[idx];
+  
+  switch(action) {
+    case 'explainWave':
+      if (currentWave) {
+        // 尝试匹配特定Wave的响应
+        const explainFn = AI_RESPONSES.waveExplain[currentWave.title];
+        if (explainFn) {
+          response = explainFn(state.character.major || '你的专业');
+        } else {
+          // 通用Wave解释
+          response = `「${currentWave.title}」这个Wave对你「${state.character.major || '你的专业'}」专业意味着：
+
+🔍 **你可以关注**：
+• 这个趋势如何影响你的专业领域
+• 你能贡献什么独特的视角
+• 哪些新机会可能出现
+
+💡 **建议行动**：
+1. 搜索这个关键词的最新动态
+2. 思考它与你的专业如何结合
+3. 和同学讨论可能的项目想法
+
+需要我帮你生成更具体的建议吗？`;
+        }
+      } else {
+        response = '还没有选择Wave，先去卡牌2抽取一些Wave吧！';
+      }
+      break;
+      
+    case 'generateMission':
+      if (waves.length > 0) {
+        response = AI_RESPONSES.missionGenerate(
+          state.character.major || '你的专业',
+          waves,
+          state.valuePoints
+        );
+      } else {
+        response = '需要先抽取Wave才能生成任务建议哦！';
+      }
+      break;
+      
+    case 'analyzeValues':
+      response = AI_RESPONSES.valueInsight(state.valuePoints);
+      break;
+      
+    case 'nextStep':
+      response = AI_RESPONSES.nextStep(state.currentStep);
+      break;
+      
+    default:
+      response = DEFAULT_RESPONSE;
+  }
+  
+  // 移除加载
+  loadingModal.remove();
+  
+  // 显示结果
+  showAIResponse(response, action);
+};
+
+// 显示AI响应
+function showAIResponse(content, action) {
+  const titles = {
+    explainWave: '🌊 Wave 解读 · Wave Analysis',
+    generateMission: '🎯 任务建议 · Mission Suggestions',
+    analyzeValues: '💭 价值观分析 · Value Analysis',
+    nextStep: '👣 下一步指南 · Next Step Guide'
+  };
+  
+  const responseModal = document.createElement('div');
+  responseModal.className = 'modal-backdrop';
+  responseModal.style.display = 'flex';
+  responseModal.id = 'aiResponseModal';
+  
+  responseModal.innerHTML = `
+    <div class="modal fade-in" style="max-width: 500px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🤖 ${titles[action] || 'AI Suggestions'}</div>
+          <div style="font-size:0.78rem;color:#6b7280;">Based on your choices</div>
+        </div>
+        <span class="modal-tag">AI Generated</span>
+      </div>
+      <div class="modal-body" style="max-height: 400px; overflow-y: auto; white-space: pre-line; line-height: 1.6;">
+        ${content.replace(/\n/g, '<br>')}
+      </div>
+      <div class="modal-footer">
+        <button class="btn-small secondary" onclick="document.getElementById('aiResponseModal').remove()">关闭</button>
+        <button class="btn-small" onclick="copyAIResponse(this)">Copy</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(responseModal);
+  
+  responseModal.addEventListener('click', (e) => {
+    if (e.target === responseModal) responseModal.remove();
+  });
+}
+
+// 复制AI建议
+function copyAIResponse(btn) {
+  const content = btn.closest('.modal').querySelector('.modal-body').innerText;
+  navigator.clipboard.writeText(content).then(() => {
+    alert('✅ Copied to clipboard 已复制到剪贴板');
+  }).catch(() => {
+    alert('❌ 复制失败，请手动复制');
+  });
+}
+
+// 在游戏开始时添加AI按钮
+btnGameStart.onclick = () => {
+  screenStart.style.display = "none";
+  screenGame.style.display = "block";
+  renderCards();
+  renderDots();
+  refreshHeader();
+  addAIFloatingButton();
+  
+  const menuButtons = document.querySelectorAll('.bottom-menu .menu-btn');
+  menuButtons.forEach((btn, index) => {
+    btn.onclick = () => {
+      // 按钮顺序：卡牌1→5
+      const targetStep = index + 1;
+      if (targetStep > state.currentStep) {
+        alert(`请先完成前面的卡牌，才能查看卡牌${targetStep}`);
+        return;
+      }
+      const mission = MISSIONS.find(m => m.id === targetStep);
+      if (mission) {
+        openMission(mission);
+      }
+    };
+  });
+  
+  // 修改这里：删除 setTimeout 和 localStorage 检查，一进入就弹窗
+  const welcomeModal = document.createElement('div');
+  welcomeModal.className = 'modal-backdrop';
+  welcomeModal.style.display = 'flex';
+  welcomeModal.innerHTML = `
+    <div class="modal fade-in" style="max-width: 500px; background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.2);">
+        <div>
+          <div class="modal-title" style="font-size: 1.5rem; color: white;">🚀 Welcome to Future Waves! </div>
+        </div>
+        <span class="modal-tag" style="background: rgba(255,255,255,0.2); color: white;"> Guide</span>
+      </div>
+      <div class="modal-body" style="color: white;">
+        <p style="font-size: 1rem; margin-bottom: 1rem;"> Build your future self step by step. </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: #fbbf24; color: #1e1b4b; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+            <span><strong>👤 Who am I in future? </strong> — Create your stickman, choose major, give a name 创建你的角色</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: #fbbf24; color: #1e1b4b; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+            <span><strong>🌊 How does the world change? </strong> — Draw Future Waves, sense future trends. 抽取Future Waves卡</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: #fbbf24; color: #1e1b4b; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+            <span><strong>💭 What do I care about? </strong> — Select key waves, allocate 6 value points. 选主力Wave，分配6点价值观</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: #fbbf24; color: #1e1b4b; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</span>
+            <span><strong>🛠️ What I want to do? </strong> — Design STEM stories and mission cards, your figure dresses up. 设计STEM故事</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: #fbbf24; color: #1e1b4b; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">5</span>
+            <span><strong>📄 The future </strong> — Generate 2036 career report, imagine your future self. 生成报告，想象未来的自己</span>
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.1); border-radius: 0.8rem; padding: 0.8rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+            <span style="font-size: 1.2rem;">🤖</span>
+            <span><strong> AI Assistant in bottom-left corner </strong> is always ready to help: </span>
+          </div>
+          <ul style="margin-left: 2rem; margin-top: 0.3rem;">
+            <li>View step-by-step tips 查看提示</li>
+            <li>Copy prompts to DeepSeek 复制提问模板</li>
+            <li>Get personalized suggestions 获得建议</li>
+          </ul>
+        </div>
+
+        <p style="font-size: 0.9rem; font-style: italic; text-align: center; opacity: 0.8;"> Click cards in order, each step has a 🎯 meaning hint! </p>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.2);">
+        <button class="btn-main" style="background: white; color: #1e1b4b; font-weight: bold;" onclick="this.closest('.modal-backdrop').remove()"> Start! 🚀</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(welcomeModal);
+  welcomeModal.addEventListener('click', (e) => {
+    if (e.target === welcomeModal) welcomeModal.remove();
+  });
+  
+  // 可选：还是记录一下已经显示过，但这次我们每次进都显示
+  // localStorage.setItem('aiWelcomeShown', 'true');
+};
+
+// 统一的AI提问模板复制函数
+window.copyAITemplate = function(templateType) {
+  let prompt = '';
+  
+  switch(templateType) {
+    case 'explainWave':
+      prompt = `请帮我解释一下这张Future Wave的含义，以及它对我的专业意味着什么。`;
+      break;
+    case 'generateMission':
+      prompt = `请根据我的专业和选择的Future Waves，生成3个具体的未来职业任务。`;
+      break;
+    case 'analyzeValues':
+      prompt = `请分析我的价值观分配，告诉我这暗示什么样的职业倾向。`;
+      break;
+    case 'nextStep':
+      prompt = `请给我一些完成下一步的建议。`;
+      break;
+    default:
+      prompt = `请给我一些游戏建议。`;
+  }
+  
+  navigator.clipboard.writeText(prompt).then(() => {
+    alert('✅ 模板已复制！\nTemplate copied!');
+  }).catch(() => {
+    const textarea = document.createElement('textarea');
+    textarea.value = prompt;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    alert('✅ 模板已复制！\nTemplate copied!');
+  });
+};
+
+</script>
+
+<!-- AI 对话框弹窗 -->
+<div class="modal-backdrop" id="aiModal" style="display:none;">
+  <div class="modal fade-in" style="max-width: 420px; height: 520px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🤖 Future Waves · AI 助手</div>
+        <div style="font-size:0.78rem;color:#6b7280;">
+          这是游戏内嵌的小窗口，你可以直接在这里和 AI 对话
+        </div>
+      </div>
+      <span class="modal-tag">Coze</span>
+    </div>
+    <div class="modal-body" style="padding:0; flex:1; overflow:hidden;">
+      <iframe
+        id="aiFrame"
+        src=""
+        style="border:0; width:100%; height:100%; border-radius:0.6rem;"
+      ></iframe>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-small secondary" id="btnCloseAiModal">
+        关闭
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
