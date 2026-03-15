@@ -1425,6 +1425,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aiModal) aiModal.style.display = "none";
     if (aiFrame) aiFrame.src = "";
   };
+  
+  // 新增：在新标签页打开外部AI助手（但保留iframe）
+  const openExternalBtn = document.getElementById("btnOpenExternalAi");
+  if (openExternalBtn) {
+    openExternalBtn.onclick = () => {
+      window.open(KOZI_AI_URL, '_blank');
+    };
+  }
 });
 
   const STICK_COLORS = [
@@ -5211,9 +5219,15 @@ window.copyAITemplate = function(templateType) {
         style="border:0; width:100%; height:100%; border-radius:0.6rem;"
       ></iframe>
     </div>
-    <div class="modal-footer">
-      <button class="btn-small secondary" id="btnCloseAiModal">
-        关闭
+    <div class="modal-footer" style="display: flex; justify-content: space-between; gap: 0.4rem;">
+      <div style="display: flex; gap: 0.4rem;">
+        <button class="btn-small secondary" id="btnCloseAiModal">关闭</button>
+        <button class="btn-small secondary" id="btnOpenExternalAi" style="background: #1e3a8a; color: white;">
+          🌐 在新标签页打开外部AI助手
+        </button>
+      </div>
+      <button class="btn-small" id="btnExternalLink" onclick="window.open('https://www.coze.cn/store/agent/7617096613026152489?bot_id=true', '_blank')" style="background: linear-gradient(135deg,#00A67E,#006B4C); color: white;">
+        🔗 跳转Coze官网
       </button>
     </div>
   </div>
